@@ -1,0 +1,46 @@
+{
+  "name": "music-tempo",
+  "version": "1.0.0",
+  "description": "Finding out tempo of the music",
+  "main": "./dist/node/MusicTempo.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "author": "killercrush",
+  "license": "MIT",
+  "devDependencies": {
+    "babel-plugin-add-module-exports": "^0.2.1",
+    "babel-plugin-transform-es2015-modules-umd": "^6.18.0",
+    "babel-preset-latest": "^6.16.0",
+    "chai": "^3.5.0",
+    "esdoc": "^0.5.2",
+    "gulp": "^3.9.1",
+    "gulp-babel": "^6.1.2",
+    "gulp-concat": "^2.6.1",
+    "gulp-rename": "^1.2.2",
+    "gulp-uglify": "^2.0.1",
+    "mocha": "^3.2.0"
+  },
+  "dependencies": {},
+  "directories": {
+    "doc": "docs",
+    "example": "example",
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/killecrush/music-tempo.git"
+  },
+  "keywords": [
+    "music",
+    "tempo",
+    "bpm",
+    "rythm",
+    "beat",
+    "beatroot"
+  ],
+  "bugs": {
+    "url": "https://github.com/killecrush/music-tempo/issues"
+  },
+  "homepage": "https://github.com/killecrush/music-tempo#readme"
+}

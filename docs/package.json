@@ -1,0 +1,29 @@
+{
+  "name": "music-tempo-js",
+  "version": "0.0.1",
+  "description": "calculate music tempo",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "babel-plugin-add-module-exports": "^0.2.1",
+    "babel-plugin-transform-es2015-modules-umd": "^6.18.0",
+    "babel-preset-latest": "^6.16.0",
+    "chai": "^3.5.0",
+    "esdoc": "^0.5.2",
+    "gulp": "^3.9.1",
+    "gulp-babel": "^6.1.2",
+    "gulp-concat": "^2.6.1",
+    "gulp-order": "^1.1.1",
+    "gulp-rename": "^1.2.2",
+    "gulp-uglify": "^2.0.1",
+    "jsdoc": "^3.4.3",
+    "mocha": "^3.2.0"
+  },
+  "dependencies": {
+    "chart.js": "^2.4.0"
+  }
+}

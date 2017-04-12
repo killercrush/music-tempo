@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <base data-ice="baseUrl" href="../../">
+  <title data-ice="title">src/BeatTracking.js | API Document</title>
+  <link type="text/css" rel="stylesheet" href="css/style.css">
+  <link type="text/css" rel="stylesheet" href="css/prettify-tomorrow.css">
+  <script src="script/prettify/prettify.js"></script>
+  
+  
+  <script src="script/manual.js"></script>
+</head>
+<body class="layout-container" data-ice="rootContainer">
+
+<header>
+  <a href="./">Home</a>
+  
+  <a href="identifiers.html">Reference</a>
+  <a href="source.html">Source</a>
+  
+  
+  <div class="search-box">
+  <span>
+    <img src="./image/search.png">
+    <span class="search-input-edge"></span><input class="search-input"><span class="search-input-edge"></span>
+  </span>
+    <ul class="search-result"></ul>
+  </div>
+</header>
+
+<nav class="navigation" data-ice="nav"><div>
+  <ul>
+    
+  <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Agent.js~Agent.html">Agent</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/BeatTracking.js~BeatTracking.html">BeatTracking</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/FFT.js~FFT.html">FFT</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/MusicTempo.js~MusicTempo.html">MusicTempo</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/OnsetDetection.js~OnsetDetection.html">OnsetDetection</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/TempoInduction.js~TempoInduction.html">TempoInduction</a></span></span></li>
+</ul>
+</div>
+</nav>
+
+<div class="content" data-ice="content"><h1 data-ice="title">src/BeatTracking.js</h1>
+<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">import Agent from &quot;./Agent&quot;;
+/** 
+ * Performs automatic beat tracking
+ * @class
+ */
+export default class BeatTracking {
+    /**
+     * Perform beat tracking on a array of onsets
+     * @param {Array} events - the array of onsets to beat track
+     * @param {Array} eventsScores - the array of corresponding salience values
+     * @param {Array} tempoList - the array of tempo hypothesis 
+     * @param {Object} [params={}] - parameters
+     * @param {Number} [params.initPeriod=5] - duration of the initial section
+     * @param {Number} [params.thresholdBI=0.02] - for the purpose of removing duplicate agents, the default JND of IBI
+     * @param {Number} [params.thresholdBT=0.04] - for the purpose of removing duplicate agents, the default JND of phase
+     * @param {Number} [params.expiryTime=10] - the time after which an Agent that has not accepted any beat will be destroyed
+     * @param {Number} [params.toleranceWndInner=0.04] - the maximum time that a beat can deviate from the predicted beat time without a fork occurring
+     * @param {Number} [params.toleranceWndPre=0.15] - the maximum amount by which a beat can be earlier than the predicted beat time, expressed as a fraction of the beat period
+     * @param {Number} [params.toleranceWndPost=0.3] - the maximum amount by which a beat can be later than the predicted beat time, expressed as a fraction of the beat period
+     * @param {Number} [params.correctionFactor=50] - correction factor for updating beat period
+     * @param {Number} [params.maxChange=0.2] - the maximum allowed deviation from the initial tempo, expressed as a fraction of the initial beat period
+     * @param {Number} [params.penaltyFactor=0.5] - factor for correcting score, if onset do not coincide precisely with predicted beat time
+     * @return {Array} agents - agents array
+     */
+    static trackBeat(events, eventsScores, tempoList, params = {}) {
+        const   initPeriod = params.initPeriod || 5,
+                thresholdBI = params.thresholdBI || 0.02,
+                thresholdBT = params.thresholdBT || 0.04;
+        function removeSimilarAgents() {
+            agents.sort( (a1, a2) =&gt; a1.beatInterval - a2.beatInterval );
+            const length = agents.length;
+            for (let i = 0; i &lt; length; i++) {
+                if (agents[i].score &lt; 0) continue;
+                for (let j = i + 1; j &lt; length; j++) {
+                    if(agents[j].beatInterval - agents[i].beatInterval &gt; thresholdBI) {
+                        break;
+                    }
+                    if(Math.abs(agents[j].beatTime - agents[i].beatTime) &gt; thresholdBT) {
+                        continue;
+                    }
+                    if(agents[i].score &lt; agents[j].score) {
+                        agents[i].score = -1;
+                    }
+                    else {
+                        agents[j].score = -1;
+                    }
+                }
+            }
+            for (let i = length - 1; i &gt;= 0; i--) {
+                if (agents[i].score &lt; 0) {
+                    agents.splice(i, 1);
+                }
+            }
+        }    
+        var agents = [];
+
+        for (let i = 0; i &lt; tempoList.length; i++) {
+            agents.push(new Agent(tempoList[i], events[0], eventsScores[0], agents, params));
+        }
+        var j = 1;
+        removeSimilarAgents();
+
+        while (events[j] &lt; initPeriod) {
+            let agentsLength = agents.length;
+            let prevBeatInterval = -1;
+            let isEventAccepted = true;
+            for (let k = 0; k &lt; agentsLength; k++) {
+                if (agents[k].beatInterval != prevBeatInterval) {
+                    if (!isEventAccepted) {
+                        agents.push(new Agent(prevBeatInterval, events[j], eventsScores[j], agents, params));
+                    }
+                    prevBeatInterval = agents[k].beatInterval;
+                    isEventAccepted = false;
+                }
+                isEventAccepted = agents[k].considerEvent(events[j], eventsScores[j]) || isEventAccepted;   
+            }
+            removeSimilarAgents();
+            j++;
+        }
+        const eventsLength = events.length;
+        for (let i = j; i &lt; eventsLength; i++) {
+            let agentsLength = agents.length;
+            for (let j = 0; j &lt; agentsLength; j++) {
+                agents[j].considerEvent(events[i], eventsScores[i]);
+            }
+            removeSimilarAgents();
+        }
+
+        return agents;
+    }
+}</code></pre>
+
+</div>
+
+<footer class="footer">
+  Generated by <a href="https://esdoc.org">ESDoc<span data-ice="esdocVersion">(0.5.2)</span><img src="./image/esdoc-logo-mini-black.png"></a>
+</footer>
+
+<script src="script/search_index.js"></script>
+<script src="script/search.js"></script>
+<script src="script/pretty-print.js"></script>
+<script src="script/inherited-summary.js"></script>
+<script src="script/test-summary.js"></script>
+<script src="script/inner-link.js"></script>
+<script src="script/patch-for-local.js"></script>
+</body>
+</html>

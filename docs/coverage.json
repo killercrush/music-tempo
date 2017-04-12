@@ -1,0 +1,37 @@
+{
+  "coverage": "100%",
+  "expectCount": 45,
+  "actualCount": 45,
+  "files": {
+    "src/Agent.js": {
+      "expectCount": 20,
+      "actualCount": 20,
+      "undocumentLines": []
+    },
+    "src/BeatTracking.js": {
+      "expectCount": 2,
+      "actualCount": 2,
+      "undocumentLines": []
+    },
+    "src/FFT.js": {
+      "expectCount": 3,
+      "actualCount": 3,
+      "undocumentLines": []
+    },
+    "src/MusicTempo.js": {
+      "expectCount": 11,
+      "actualCount": 11,
+      "undocumentLines": []
+    },
+    "src/OnsetDetection.js": {
+      "expectCount": 4,
+      "actualCount": 4,
+      "undocumentLines": []
+    },
+    "src/TempoInduction.js": {
+      "expectCount": 5,
+      "actualCount": 5,
+      "undocumentLines": []
+    }
+  }
+}

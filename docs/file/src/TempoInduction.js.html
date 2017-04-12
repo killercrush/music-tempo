@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <base data-ice="baseUrl" href="../../">
+  <title data-ice="title">src/TempoInduction.js | API Document</title>
+  <link type="text/css" rel="stylesheet" href="css/style.css">
+  <link type="text/css" rel="stylesheet" href="css/prettify-tomorrow.css">
+  <script src="script/prettify/prettify.js"></script>
+  
+  
+  <script src="script/manual.js"></script>
+</head>
+<body class="layout-container" data-ice="rootContainer">
+
+<header>
+  <a href="./">Home</a>
+  
+  <a href="identifiers.html">Reference</a>
+  <a href="source.html">Source</a>
+  
+  
+  <div class="search-box">
+  <span>
+    <img src="./image/search.png">
+    <span class="search-input-edge"></span><input class="search-input"><span class="search-input-edge"></span>
+  </span>
+    <ul class="search-result"></ul>
+  </div>
+</header>
+
+<nav class="navigation" data-ice="nav"><div>
+  <ul>
+    
+  <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Agent.js~Agent.html">Agent</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/BeatTracking.js~BeatTracking.html">BeatTracking</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/FFT.js~FFT.html">FFT</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/MusicTempo.js~MusicTempo.html">MusicTempo</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/OnsetDetection.js~OnsetDetection.html">OnsetDetection</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/TempoInduction.js~TempoInduction.html">TempoInduction</a></span></span></li>
+</ul>
+</div>
+</nav>
+
+<div class="content" data-ice="content"><h1 data-ice="title">src/TempoInduction.js</h1>
+<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">/** 
+ * Performs tempo induction by finding clusters of similar inter-onset intervals (IOIs)
+ * @class
+ */
+export default class TempoInduction {
+    /**
+     * Find clusters
+     * @param {Array} events - the onsets from which the tempo is induced
+     * @param {Object} [params={}] - parameters
+     * @param {Number} [params.widthTreshold=0.025] - the maximum difference in IOIs which are in the same cluster
+     * @param {Number} [params.maxIOI=2.5] - the maximum IOI for inclusion in a cluster
+     * @param {Number} [params.minIOI=0.07] - the minimum IOI for inclusion in a cluster
+     * @return {{clIntervals: Array, clSizes: Array}} - object with clusters
+     */      
+    static processRhythmicEvents(events, params = {}) {
+        const widthTreshold = params.widthTreshold || 0.025,
+              maxIOI = params.maxIOI || 2.5,
+              minIOI = params.minIOI || 0.07,
+              length = events.length;
+
+        let clIntervals = [],
+            clSizes = [],
+            clCount = 0;
+
+        for (let i = 0; i &lt; length - 1; i++) {
+            for(let j = i + 1; j &lt; length; j++) {
+                let ioi = events[j] - events[i];
+                if (ioi &lt; minIOI) {
+                    continue
+                }                
+                if (ioi &gt; maxIOI) {
+                    break;
+                }
+                let k = 0;
+                for ( ; k &lt; clCount; k++) {
+                    if (Math.abs(clIntervals[k] - ioi) &lt; widthTreshold) {
+                        if ( Math.abs(clIntervals[k + 1] - ioi) &lt; Math.abs(clIntervals[k] - ioi) 
+                            &amp;&amp; k &lt; clCount - 1 ) {
+                            k++;
+                        }
+                        clIntervals[k] = (clIntervals[k] * clSizes[k] + ioi) / (clSizes[k] + 1);
+                        clSizes[k]++;
+                        break;
+                    }
+                }
+                if (k != clCount) continue;
+                clCount++;
+                for ( ; k &gt; 0 &amp;&amp; clIntervals[k - 1] &gt; ioi; k--) {
+                    clIntervals[k] = clIntervals[k - 1];
+                    clSizes[k] = clSizes[k - 1];
+                }
+                clIntervals[k] = ioi;
+                clSizes[k] = 1;
+            }
+        }
+        if (clCount == 0) {
+          throw &quot;Fail to find IOIs&quot;;
+        }
+        clIntervals.length = clCount;
+        clSizes.length = clCount;
+        return {clIntervals, clSizes};
+    }
+    /**
+     * Merge similar intervals
+     * @param {Object} clusters - object with clusters
+     * @param {Array} clusters.clIntervals - clusters IOIs array
+     * @param {Array} clusters.clSizes - clusters sizes array
+     * @param {Object} [params={}] - parameters
+     * @param {Number} [params.widthTreshold=0.025] - the maximum difference in IOIs which are in the same cluster
+     * @return {{clIntervals: Array, clSizes: Array}} - object with clusters
+     */
+    static mergeClusters(clusters, params = {}) {
+        const widthTreshold = params.widthTreshold || 0.025;
+
+        let clIntervals = clusters.clIntervals,
+            clSizes = clusters.clSizes;
+        let clCount = clIntervals.length;
+
+        for (let i = 0; i &lt; clCount; i++)
+            for (let j = i + 1; j &lt; clCount; j++)
+                if (Math.abs(clIntervals[i] - clIntervals[j]) &lt; widthTreshold) {
+                    clIntervals[i] = 
+                        (clIntervals[i] * clSizes[i] + 
+                        clIntervals[j] * clSizes[j]) / 
+                        (clSizes[i] + clSizes[j]);
+                    clSizes[i] = clSizes[i] + clSizes[j];
+                    --clCount;
+                    for (let k = j + 1; k &lt;= clCount; k++) {
+                        clIntervals[k-1] = clIntervals[k];
+                        clSizes[k-1] = clSizes[k];
+                    }
+                }
+        clIntervals.length = clCount;
+        clSizes.length = clCount;
+        return {clIntervals, clSizes};
+    }
+    /**
+     * Score intervals
+     * @param {Object} clusters - object with clusters
+     * @param {Array} clusters.clIntervals - clusters IOIs array
+     * @param {Array} clusters.clSizes - clusters sizes array
+     * @param {Object} [params={}] - parameters
+     * @param {Number} [params.widthTreshold=0.025] - the maximum difference in IOIs which are in the same cluster
+     * @param {Number} [params.maxTempos=10] - initial amount of tempo hypotheses
+     * @return {{clScores: Array, clScoresIdxs: Array}} - object with intervals scores
+     */
+    static calculateScore(clusters, params = {}) {
+        const widthTreshold = params.widthTreshold || 0.025;
+        let maxTempos = params.maxTempos || 10;
+
+        let clIntervals = clusters.clIntervals,
+            clSizes = clusters.clSizes,
+            clScores = [],
+            clScoresIdxs = [];
+        let clCount = clIntervals.length;
+
+        for (let i = 0; i &lt; clCount; i++) {
+            clScores[i] = 10 * clSizes[i];
+            clScoresIdxs[i] = { score: clScores[i], idx: i};
+        }        
+
+        clScoresIdxs.sort( (a, b) =&gt; b.score - a.score );
+        if (clScoresIdxs.length &gt; maxTempos) {
+          for (let i = maxTempos - 1; i &lt;  clScoresIdxs.length - 1; i++) {
+              if (clScoresIdxs[i].score == clScoresIdxs[i + 1].score) {
+                  maxTempos++;
+              } else {
+                  break;
+              }
+          }
+          clScoresIdxs.length = maxTempos;
+        }
+
+        clScoresIdxs = clScoresIdxs.map( a =&gt; a.idx );
+
+        for (let i = 0; i &lt; clCount; i++) {
+            for (let j = i + 1; j &lt; clCount; j++) {
+                let ratio = clIntervals[i] / clIntervals[j];
+                let isFraction = ratio &lt; 1;
+                let d, err;
+                d = isFraction ? Math.round(1 / ratio) : Math.round(ratio);
+                if (d &lt; 2 || d &gt; 8) continue;
+
+                if (isFraction)
+                    err = Math.abs(clIntervals[i] * d - clIntervals[j]);
+                else
+                    err = Math.abs(clIntervals[i] - clIntervals[j] * d);
+                let errTreshold = isFraction ? widthTreshold : widthTreshold * d;
+                if (err &gt;= errTreshold) continue;
+
+                d = d &gt;= 5 ? 1 : 6 - d;
+                clScores[i] += d * clSizes[j];
+                clScores[j] += d * clSizes[i];
+            }
+        }
+        return {clScores, clScoresIdxs};
+    }
+    /**
+     * Get array of tempo hypotheses
+     * @param {Object} clusters - object with clusters
+     * @param {Array} clusters.clIntervals - clusters IOIs array
+     * @param {Array} clusters.clSizes - clusters sizes array
+     * @param {Array} clusters.clScores - clusters scores array
+     * @param {Array} clusters.clScoresIdxs - clusters scores indexes array
+     * @param {Object} [params={}] - parameters
+     * @param {Number} [params.widthTreshold=0.025] - the maximum difference in IOIs which are in the same cluster
+     * @param {Number} [params.minBeatInterval=0.3] - the minimum inter-beat interval (IBI) (0.30 seconds == 200 BPM)
+     * @param {Number} [params.maxBeatInterval=1] - the maximum inter-beat interval (IBI) (1.00 seconds ==  60 BPM)
+     * @return {Array} tempoList - tempo hypotheses array
+     */
+    static createTempoList(clusters, params = {}) {
+        const widthTreshold = params.widthTreshold || 0.025,
+            minBeatInterval = params.minBeatInterval || 0.3,
+            maxBeatInterval = params.maxBeatInterval || 1;
+        let clIntervals = clusters.clIntervals,
+            clSizes = clusters.clSizes,
+            clScores = clusters.clScores,
+            clScoresIdxs = clusters.clScoresIdxs,
+            tempoList = [];
+        let clCount = clIntervals.length;
+
+        for (let i = 0; i &lt; clScoresIdxs.length; i++) {
+            let idx = clScoresIdxs[i];            
+            let newSum = clIntervals[idx] * clScores[idx];
+            let newWeight = clScores[idx];
+            let err, errTreshold;
+            for (let j = 0; j &lt; clCount; j++) {
+                if (j == idx) continue;
+                let ratio = clIntervals[idx] / clIntervals[j];
+                let isFraction = ratio &lt; 1;
+                let sumInc = 0;
+                let d = isFraction ? Math.round(1 / ratio) : Math.round(ratio);
+                if (d &lt; 2 || d &gt; 8) continue;
+
+                if (isFraction) {
+                    err = Math.abs(clIntervals[idx] * d - clIntervals[j]);
+                    errTreshold = widthTreshold;
+                } else {
+                    err = Math.abs(clIntervals[idx] - d * clIntervals[j]);
+                    errTreshold = widthTreshold * d;
+                }
+                if (err &gt;= errTreshold) continue;
+
+                if (isFraction) {
+                    newSum += clIntervals[j] / d * clScores[j];
+                } else {
+                    newSum += clIntervals[j] * d * clScores[j];
+                }
+                newWeight += clScores[j];
+            }
+            let beat = newSum / newWeight;
+            
+            while (beat &lt; minBeatInterval) beat *= 2;
+            while (beat &gt; maxBeatInterval) beat /= 2;
+
+            tempoList.push(beat);
+        }
+        return tempoList;
+    }    
+}</code></pre>
+
+</div>
+
+<footer class="footer">
+  Generated by <a href="https://esdoc.org">ESDoc<span data-ice="esdocVersion">(0.5.2)</span><img src="./image/esdoc-logo-mini-black.png"></a>
+</footer>
+
+<script src="script/search_index.js"></script>
+<script src="script/search.js"></script>
+<script src="script/pretty-print.js"></script>
+<script src="script/inherited-summary.js"></script>
+<script src="script/test-summary.js"></script>
+<script src="script/inner-link.js"></script>
+<script src="script/patch-for-local.js"></script>
+</body>
+</html>

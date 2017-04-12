@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <base data-ice="baseUrl" href="../../">
+  <title data-ice="title">src/MusicTempo.js | API Document</title>
+  <link type="text/css" rel="stylesheet" href="css/style.css">
+  <link type="text/css" rel="stylesheet" href="css/prettify-tomorrow.css">
+  <script src="script/prettify/prettify.js"></script>
+  
+  
+  <script src="script/manual.js"></script>
+</head>
+<body class="layout-container" data-ice="rootContainer">
+
+<header>
+  <a href="./">Home</a>
+  
+  <a href="identifiers.html">Reference</a>
+  <a href="source.html">Source</a>
+  
+  
+  <div class="search-box">
+  <span>
+    <img src="./image/search.png">
+    <span class="search-input-edge"></span><input class="search-input"><span class="search-input-edge"></span>
+  </span>
+    <ul class="search-result"></ul>
+  </div>
+</header>
+
+<nav class="navigation" data-ice="nav"><div>
+  <ul>
+    
+  <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Agent.js~Agent.html">Agent</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/BeatTracking.js~BeatTracking.html">BeatTracking</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/FFT.js~FFT.html">FFT</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/MusicTempo.js~MusicTempo.html">MusicTempo</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/OnsetDetection.js~OnsetDetection.html">OnsetDetection</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/TempoInduction.js~TempoInduction.html">TempoInduction</a></span></span></li>
+</ul>
+</div>
+</nav>
+
+<div class="content" data-ice="content"><h1 data-ice="title">src/MusicTempo.js</h1>
+<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">import OnsetDetection from &quot;./OnsetDetection&quot;;
+import TempoInduction from &quot;./TempoInduction&quot;;
+import BeatTracking from &quot;./BeatTracking&quot;;
+import FFT from &quot;./FFT&quot;;
+
+/** 
+ * Class combines the work of all the steps of tempo extraction
+ * @class
+ */
+export default class MusicTempo {
+    /**
+     * Constructor
+     * @param {Float32Array} audioData - non-interleaved IEEE 32-bit linear PCM with a nominal range of -1 -&gt; +1 (Web Audio API - Audio Buffer)
+     * @param {Object} [params={}] - parameters
+     * @param {Number} [params.bufferSize=2048] - FFT windows size
+     * @param {Number} [params.hopSize=441] - spacing of audio frames in samples
+     * @param {Number} [params.decayRate=0.84] - how quickly previous peaks are forgotten
+     * @param {Number} [params.peakFindingWindow=6] - minimum distance between peaks
+     * @param {Number} [params.meanWndMultiplier=3] - multiplier for peak finding window
+     * @param {Number} [params.peakThreshold=0.35] - minimum value of peaks
+     * @param {Number} [params.widthTreshold=0.025] - the maximum difference in IOIs which are in the same cluster
+     * @param {Number} [params.maxIOI=2.5] - the maximum IOI for inclusion in a cluster
+     * @param {Number} [params.minIOI=0.07] - the minimum IOI for inclusion in a cluster
+     * @param {Number} [params.maxTempos=10] - initial amount of tempo hypotheses
+     * @param {Number} [params.minBeatInterval=0.3] - the minimum inter-beat interval (IBI) (0.30 seconds == 200 BPM)
+     * @param {Number} [params.maxBeatInterval=1] - the maximum inter-beat interval (IBI) (1.00 seconds ==  60 BPM)
+     * @param {Number} [params.initPeriod=5] - duration of the initial section
+     * @param {Number} [params.thresholdBI=0.02] - for the purpose of removing duplicate agents, the default JND of IBI
+     * @param {Number} [params.thresholdBT=0.04] - for the purpose of removing duplicate agents, the default JND of phase
+     * @param {Number} [params.expiryTime=10] - the time after which an Agent that has not accepted any beat will be destroyed
+     * @param {Number} [params.toleranceWndInner=0.04] - the maximum time that a beat can deviate from the predicted beat time without a fork occurring
+     * @param {Number} [params.toleranceWndPre=0.15] - the maximum amount by which a beat can be earlier than the predicted beat time, expressed as a fraction of the beat period
+     * @param {Number} [params.toleranceWndPost=0.3] - the maximum amount by which a beat can be later than the predicted beat time, expressed as a fraction of the beat period
+     * @param {Number} [params.correctionFactor=50] - correction factor for updating beat period
+     * @param {Number} [params.maxChange=0.2] - the maximum allowed deviation from the initial tempo, expressed as a fraction of the initial beat period
+     * @param {Number} [params.penaltyFactor=0.5] - factor for correcting score, if onset do not coincide precisely with predicted beat time
+     */    
+    constructor(audioData, params = {}) {
+        if ( !(audioData instanceof Float32Array) &amp;&amp; !Array.isArray(audioData)) {
+            throw &quot;&#x41F;&#x430;&#x440;&#x430;&#x43C;&#x435;&#x442;&#x440; audioData &#x43D;&#x435; &#x44F;&#x432;&#x43B;&#x44F;&#x435;&#x442;&#x441;&#x44F; &#x43C;&#x430;&#x441;&#x441;&#x438;&#x432;&#x43E;&#x43C;&quot;;
+        }
+        const timeStep = params.timeStep || 0.01;
+        let res = OnsetDetection.calculateSF(audioData, FFT, params);
+        /** 
+         * Spectral flux
+         * @type {Array} 
+         */          
+        this.spectralFlux = res;
+        OnsetDetection.normalize(this.spectralFlux);
+        /** 
+         * Spectral flux peaks indexes
+         * @type {Array} 
+         */         
+        this.peaks = OnsetDetection.findPeaks(this.spectralFlux, params);
+        /** 
+         * Onsets times array
+         * @type {Array} 
+         */ 
+        this.events = this.peaks.map(a =&gt; a * timeStep);
+
+        let clusters = TempoInduction.processRhythmicEvents(this.events, params);
+        clusters = TempoInduction.mergeClusters(clusters, params); 
+        let scores = TempoInduction.calculateScore(clusters, params);
+        clusters = {
+            clIntervals: clusters.clIntervals,
+            clSizes: clusters.clSizes,
+            clScores: scores.clScores,
+            clScoresIdxs: scores.clScoresIdxs
+        };
+        /** 
+         * Tempo hypotheses array
+         * @type {Array} 
+         */ 
+        this.tempoList = TempoInduction.createTempoList(clusters, params);
+
+        let minSFValue = this.spectralFlux.reduce( (a, b) =&gt; Math.min(a, b) );
+        let eventsScores = this.peaks.map(a =&gt; this.spectralFlux[a] - minSFValue);
+        /** 
+         * Agents array
+         * @type {Array} 
+         */         
+        this.agents = BeatTracking.trackBeat(this.events, eventsScores, this.tempoList, params);
+
+        let bestScore = -1;
+        let idxBestAgent = -1;
+        /** 
+         * The tempo value in beats per minute
+         * @type {Number} 
+         */          
+        this.tempo = -1;
+        /** 
+         * Beat times array
+         * @type {Array} 
+         */          
+        this.beats = [];
+        /** 
+         * Inter-beat interval
+         * @type {Number} 
+         */        
+        this.beatInterval = -1;
+
+        for (let i = 0; i &lt; this.agents.length; i++) {
+            if(this.agents[i].score &gt; bestScore) {
+                bestScore = this.agents[i].score;
+                idxBestAgent = i;
+            }
+        }
+        if (this.agents[idxBestAgent]) {
+            /** 
+             * The agent with the highest score
+             * @type {Agent} 
+             */             
+            this.bestAgent = this.agents[idxBestAgent];
+            this.bestAgent.fillBeats();
+            this.tempo = (60 / this.bestAgent.beatInterval).toFixed(3);
+            this.beatInterval = this.bestAgent.beatInterval;
+            this.beats = this.bestAgent.events;
+        }
+        if (this.tempo == -1) {
+            throw &quot;Tempo extraction failed&quot;;
+        }
+    }
+}</code></pre>
+
+</div>
+
+<footer class="footer">
+  Generated by <a href="https://esdoc.org">ESDoc<span data-ice="esdocVersion">(0.5.2)</span><img src="./image/esdoc-logo-mini-black.png"></a>
+</footer>
+
+<script src="script/search_index.js"></script>
+<script src="script/search.js"></script>
+<script src="script/pretty-print.js"></script>
+<script src="script/inherited-summary.js"></script>
+<script src="script/test-summary.js"></script>
+<script src="script/inner-link.js"></script>
+<script src="script/patch-for-local.js"></script>
+</body>
+</html>

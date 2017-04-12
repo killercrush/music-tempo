@@ -1,0 +1,1694 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <base data-ice="baseUrl" href="../../">
+  <title data-ice="title">Agent | API Document</title>
+  <link type="text/css" rel="stylesheet" href="css/style.css">
+  <link type="text/css" rel="stylesheet" href="css/prettify-tomorrow.css">
+  <script src="script/prettify/prettify.js"></script>
+  
+  
+  <script src="script/manual.js"></script>
+</head>
+<body class="layout-container" data-ice="rootContainer">
+
+<header>
+  <a href="./">Home</a>
+  
+  <a href="identifiers.html">Reference</a>
+  <a href="source.html">Source</a>
+  
+  
+  <div class="search-box">
+  <span>
+    <img src="./image/search.png">
+    <span class="search-input-edge"></span><input class="search-input"><span class="search-input-edge"></span>
+  </span>
+    <ul class="search-result"></ul>
+  </div>
+</header>
+
+<nav class="navigation" data-ice="nav"><div>
+  <ul>
+    
+  <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/BeatTracking.js~Agent.html">Agent</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/BeatTracking.js~BeatTracking.html">BeatTracking</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/FFT.js~FFT.html">FFT</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/MusicTempo.js~MusicTempo.html">MusicTempo</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/OnsetDetection.js~OnsetDetection.html">OnsetDetection</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/TempoInduction.js~TempoInduction.html">TempoInduction</a></span></span></li>
+</ul>
+</div>
+</nav>
+
+<div class="content" data-ice="content"><div class="header-notice">
+  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import {Agent} from &apos;<span><a href="file/src/BeatTracking.js.html#lineNumber96">music-tempo-js/src/BeatTracking.js</a></span>&apos;</code></pre></div>
+  <span data-ice="access">public</span>
+  <span data-ice="kind">class</span>
+  
+  
+  
+  <span data-ice="source">| <span><a href="file/src/BeatTracking.js.html#lineNumber96">source</a></span></span>
+</div>
+
+<div class="self-detail detail">
+  <h1 data-ice="name">Agent</h1>
+
+  
+
+  
+  
+  
+  
+  
+  
+  
+  
+  
+
+  
+  
+  <div class="description" data-ice="description"><p>&#x410;&#x433;&#x435;&#x43D;&#x442;, &#x43F;&#x440;&#x43E;&#x438;&#x437;&#x432;&#x43E;&#x434;&#x44F;&#x449;&#x438;&#x439; &#x43E;&#x442;&#x441;&#x43B;&#x435;&#x436;&#x438;&#x432;&#x430;&#x43D;&#x438;&#x435; &#x431;&#x438;&#x442;&#x43E;&#x432;</p>
+</div>
+  
+
+  
+
+  
+
+  
+
+  
+</div>
+
+
+
+<div data-ice="constructorSummary"><h2>Constructor Summary</h2><table class="summary" data-ice="summary">
+  <thead><tr><td data-ice="title" colspan="3">Public Constructor</td></tr></thead>
+  <tbody>
+  
+  <tr data-ice="target">
+    <td>
+      <span class="access" data-ice="access">public</span>
+      
+      
+      
+      <span class="override" data-ice="override"></span>
+    </td>
+    <td>
+      <div>
+        <p>
+          
+          
+          <span data-ice="name"><span><a href="class/src/BeatTracking.js~Agent.html#instance-constructor-constructor">constructor</a></span></span><span data-ice="signature">(tempo: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span>, firstBeatTime: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span>, firsteventScore: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span>, agentList: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a></span>, params: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></span>)</span>
+        </p>
+      </div>
+      <div>
+        
+        
+        <div data-ice="description"><p>&#x41A;&#x43E;&#x43D;&#x441;&#x442;&#x440;&#x443;&#x43A;&#x442;&#x43E;&#x440;</p>
+</div>
+      </div>
+    </td>
+    <td>
+      
+      
+    </td>
+  </tr>
+</tbody>
+</table>
+</div>
+<div data-ice="memberSummary"><h2>Member Summary</h2><table class="summary" data-ice="summary">
+  <thead><tr><td data-ice="title" colspan="3">Public Members</td></tr></thead>
+  <tbody>
+  
+  <tr data-ice="target">
+    <td>
+      <span class="access" data-ice="access">public</span>
+      
+      
+      
+      <span class="override" data-ice="override"></span>
+    </td>
+    <td>
+      <div>
+        <p>
+          
+          
+          <span data-ice="name"><span><a href="class/src/BeatTracking.js~Agent.html#instance-member-agentListRef">agentListRef</a></span></span><span data-ice="signature">: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a></span></span>
+        </p>
+      </div>
+      <div>
+        
+        
+        <div data-ice="description"><p>&#x421;&#x441;&#x44B;&#x43B;&#x43A;&#x430; &#x43D;&#x430; &#x441;&#x43F;&#x438;&#x441;&#x43E;&#x43A; &#x430;&#x433;&#x435;&#x43D;&#x442;&#x43E;&#x432;</p>
+</div>
+      </div>
+    </td>
+    <td>
+      
+      
+    </td>
+  </tr>
+<tr data-ice="target">
+    <td>
+      <span class="access" data-ice="access">public</span>
+      
+      
+      
+      <span class="override" data-ice="override"></span>
+    </td>
+    <td>
+      <div>
+        <p>
+          
+          
+          <span data-ice="name"><span><a href="class/src/BeatTracking.js~Agent.html#instance-member-beatInterval">beatInterval</a></span></span><span data-ice="signature">: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span></span>
+        </p>
+      </div>
+      <div>
+        
+        
+        <div data-ice="description"><p>&#x422;&#x435;&#x43C;&#x43F; &#x430;&#x433;&#x435;&#x43D;&#x442;&#x430;</p>
+</div>
+      </div>
+    </td>
+    <td>
+      
+      
+    </td>
+  </tr>
+<tr data-ice="target">
+    <td>
+      <span class="access" data-ice="access">public</span>
+      
+      
+      
+      <span class="override" data-ice="override"></span>
+    </td>
+    <td>
+      <div>
+        <p>
+          
+          
+          <span data-ice="name"><span><a href="class/src/BeatTracking.js~Agent.html#instance-member-beatTime">beatTime</a></span></span><span data-ice="signature">: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span></span>
+        </p>
+      </div>
+      <div>
+        
+        
+        <div data-ice="description"><p>&#x412;&#x440;&#x435;&#x43C;&#x44F; &#x43F;&#x43E;&#x441;&#x43B;&#x435;&#x434;&#x43D;&#x435;&#x43D;&#x433;&#x43E; &#x431;&#x438;&#x442;&#x430;</p>
+</div>
+      </div>
+    </td>
+    <td>
+      
+      
+    </td>
+  </tr>
+<tr data-ice="target">
+    <td>
+      <span class="access" data-ice="access">public</span>
+      
+      
+      
+      <span class="override" data-ice="override"></span>
+    </td>
+    <td>
+      <div>
+        <p>
+          
+          
+          <span data-ice="name"><span><a href="class/src/BeatTracking.js~Agent.html#instance-member-correctionFactor">correctionFactor</a></span></span><span data-ice="signature">: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span></span>
+        </p>
+      </div>
+      <div>
+        
+        
+        <div data-ice="description"><p>&#x43A;&#x43E;&#x44D;&#x444;&#x444;&#x438;&#x446;&#x438;&#x435;&#x43D;&#x442; &#x434;&#x43B;&#x44F; &#x43E;&#x431;&#x43D;&#x43E;&#x432;&#x43B;&#x435;&#x43D;&#x438;&#x44F; &#x442;&#x435;&#x43C;&#x43F;&#x430; &#x431;&#x438;&#x442;&#x430;</p>
+</div>
+      </div>
+    </td>
+    <td>
+      
+      
+    </td>
+  </tr>
+<tr data-ice="target">
+    <td>
+      <span class="access" data-ice="access">public</span>
+      
+      
+      
+      <span class="override" data-ice="override"></span>
+    </td>
+    <td>
+      <div>
+        <p>
+          
+          
+          <span data-ice="name"><span><a href="class/src/BeatTracking.js~Agent.html#instance-member-events">events</a></span></span><span data-ice="signature">: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a></span></span>
+        </p>
+      </div>
+      <div>
+        
+        
+        <div data-ice="description"><p>&#x41C;&#x430;&#x441;&#x441;&#x438;&#x432; &#x432;&#x440;&#x435;&#x43C;&#x435;&#x43D; &#x431;&#x438;&#x442;&#x43E;&#x432;</p>
+</div>
+      </div>
+    </td>
+    <td>
+      
+      
+    </td>
+  </tr>
+<tr data-ice="target">
+    <td>
+      <span class="access" data-ice="access">public</span>
+      
+      
+      
+      <span class="override" data-ice="override"></span>
+    </td>
+    <td>
+      <div>
+        <p>
+          
+          
+          <span data-ice="name"><span><a href="class/src/BeatTracking.js~Agent.html#instance-member-expiryTime">expiryTime</a></span></span><span data-ice="signature">: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span></span>
+        </p>
+      </div>
+      <div>
+        
+        
+        <div data-ice="description"><p>&#x412;&#x440;&#x435;&#x43C;&#x44F; &#x43F;&#x43E;&#x441;&#x43B;&#x435; &#x43A;&#x43E;&#x442;&#x43E;&#x440;&#x43E;&#x433;&#x43E; &#x430;&#x433;&#x435;&#x43D;&#x442; &#x43D;&#x435; &#x43F;&#x440;&#x438;&#x43D;&#x44F;&#x432;&#x448;&#x438;&#x439; &#x43D;&#x438; &#x43E;&#x434;&#x43D;&#x43E;&#x433;&#x43E; &#x431;&#x438;&#x442;&#x430; &#x443;&#x43D;&#x438;&#x447;&#x442;&#x43E;&#x436;&#x430;&#x435;&#x442;&#x441;&#x44F; </p>
+</div>
+      </div>
+    </td>
+    <td>
+      
+      
+    </td>
+  </tr>
+<tr data-ice="target">
+    <td>
+      <span class="access" data-ice="access">public</span>
+      
+      
+      
+      <span class="override" data-ice="override"></span>
+    </td>
+    <td>
+      <div>
+        <p>
+          
+          
+          <span data-ice="name"><span><a href="class/src/BeatTracking.js~Agent.html#instance-member-initialBeatInterval">initialBeatInterval</a></span></span><span data-ice="signature">: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span></span>
+        </p>
+      </div>
+      <div>
+        
+        
+        <div data-ice="description"><p>&#x41F;&#x435;&#x440;&#x432;&#x43E;&#x43D;&#x430;&#x447;&#x430;&#x43B;&#x44C;&#x43D;&#x44B;&#x439; &#x442;&#x435;&#x43C;&#x43F; &#x430;&#x433;&#x435;&#x43D;&#x442;&#x430;</p>
+</div>
+      </div>
+    </td>
+    <td>
+      
+      
+    </td>
+  </tr>
+<tr data-ice="target">
+    <td>
+      <span class="access" data-ice="access">public</span>
+      
+      
+      
+      <span class="override" data-ice="override"></span>
+    </td>
+    <td>
+      <div>
+        <p>
+          
+          
+          <span data-ice="name"><span><a href="class/src/BeatTracking.js~Agent.html#instance-member-maxChange">maxChange</a></span></span><span data-ice="signature">: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span></span>
+        </p>
+      </div>
+      <div>
+        
+        
+        <div data-ice="description"><p>&#x43A;&#x43E;&#x44D;&#x444;&#x444;&#x438;&#x446;&#x438;&#x435;&#x43D;&#x442; &#x43C;&#x430;&#x43A;&#x441;&#x438;&#x43C;&#x430;&#x43B;&#x44C;&#x43D;&#x43E;&#x433;&#x43E; &#x438;&#x437;&#x43C;&#x435;&#x43D;&#x435;&#x43D;&#x438;&#x44F; &#x442;&#x435;&#x43C;&#x43F;&#x430; &#x43E;&#x442; &#x43F;&#x435;&#x440;&#x432;&#x43E;&#x43D;&#x430;&#x447;&#x430;&#x43B;&#x44C;&#x43D;&#x43E;&#x433;&#x43E;</p>
+</div>
+      </div>
+    </td>
+    <td>
+      
+      
+    </td>
+  </tr>
+<tr data-ice="target">
+    <td>
+      <span class="access" data-ice="access">public</span>
+      
+      
+      
+      <span class="override" data-ice="override"></span>
+    </td>
+    <td>
+      <div>
+        <p>
+          
+          
+          <span data-ice="name"><span><a href="class/src/BeatTracking.js~Agent.html#instance-member-penaltyFactor">penaltyFactor</a></span></span><span data-ice="signature">: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span></span>
+        </p>
+      </div>
+      <div>
+        
+        
+        <div data-ice="description"><p>&#x43A;&#x43E;&#x44D;&#x444;&#x444;&#x438;&#x446;&#x438;&#x435;&#x43D;&#x442; &#x434;&#x43B;&#x44F; &#x440;&#x430;&#x441;&#x441;&#x447;&#x435;&#x442;&#x430; &#x448;&#x442;&#x440;&#x430;&#x444;&#x430; &#x437;&#x430; &#x43E;&#x442;&#x43A;&#x43B;&#x43E;&#x43D;&#x435;&#x43D;&#x438;&#x435; &#x43E;&#x442; &#x440;&#x435;&#x430;&#x43B;&#x44C;&#x43D;&#x43E;&#x433;&#x43E; &#x43E;&#x442; &#x43F;&#x440;&#x435;&#x434;&#x43F;&#x43E;&#x43B;&#x430;&#x433;&#x430;&#x435;&#x43C;&#x43E;&#x433;&#x43E; &#x432;&#x440;&#x435;&#x43C;&#x435;&#x43D;&#x438; &#x431;&#x438;&#x442;&#x430;</p>
+</div>
+      </div>
+    </td>
+    <td>
+      
+      
+    </td>
+  </tr>
+<tr data-ice="target">
+    <td>
+      <span class="access" data-ice="access">public</span>
+      
+      
+      
+      <span class="override" data-ice="override"></span>
+    </td>
+    <td>
+      <div>
+        <p>
+          
+          
+          <span data-ice="name"><span><a href="class/src/BeatTracking.js~Agent.html#instance-member-score">score</a></span></span><span data-ice="signature">: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span></span>
+        </p>
+      </div>
+      <div>
+        
+        
+        <div data-ice="description"><p>&#x41A;&#x43E;&#x43B;&#x438;&#x447;&#x435;&#x441;&#x442;&#x432;&#x43E; &#x43E;&#x447;&#x43A;&#x43E;&#x432; &#x430;&#x433;&#x435;&#x43D;&#x442;&#x430;</p>
+</div>
+      </div>
+    </td>
+    <td>
+      
+      
+    </td>
+  </tr>
+<tr data-ice="target">
+    <td>
+      <span class="access" data-ice="access">public</span>
+      
+      
+      
+      <span class="override" data-ice="override"></span>
+    </td>
+    <td>
+      <div>
+        <p>
+          
+          
+          <span data-ice="name"><span><a href="class/src/BeatTracking.js~Agent.html#instance-member-toleranceWndInner">toleranceWndInner</a></span></span><span data-ice="signature">: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span></span>
+        </p>
+      </div>
+      <div>
+        
+        
+        <div data-ice="description"><p>&#x432;&#x43D;&#x443;&#x442;&#x440;&#x435;&#x43D;&#x43D;&#x435;&#x435; &#x43E;&#x43A;&#x43D;&#x43E; &#x434;&#x43E;&#x43F;&#x443;&#x441;&#x442;&#x438;&#x43C;&#x43E;&#x433;&#x43E; &#x43E;&#x442;&#x43A;&#x43B;&#x43E;&#x43D;&#x435;&#x43D;&#x438;&#x44F; &#x43E;&#x442; &#x43F;&#x440;&#x435;&#x434;&#x43F;&#x43E;&#x43B;&#x430;&#x433;&#x430;&#x435;&#x43C;&#x43E;&#x433;&#x43E; &#x432;&#x440;&#x435;&#x43C;&#x435;&#x43D;&#x438; &#x431;&#x438;&#x442;&#x430;</p>
+</div>
+      </div>
+    </td>
+    <td>
+      
+      
+    </td>
+  </tr>
+<tr data-ice="target">
+    <td>
+      <span class="access" data-ice="access">public</span>
+      
+      
+      
+      <span class="override" data-ice="override"></span>
+    </td>
+    <td>
+      <div>
+        <p>
+          
+          
+          <span data-ice="name"><span><a href="class/src/BeatTracking.js~Agent.html#instance-member-toleranceWndPost">toleranceWndPost</a></span></span><span data-ice="signature">: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span></span>
+        </p>
+      </div>
+      <div>
+        
+        
+        <div data-ice="description"><p>&#x432;&#x43D;&#x435;&#x448;&#x43D;&#x435;&#x435; &#x43E;&#x43A;&#x43D;&#x43E; &#x434;&#x43E;&#x43F;&#x443;&#x441;&#x442;&#x438;&#x43C;&#x43E;&#x433;&#x43E; &#x43E;&#x442;&#x43A;&#x43B;&#x43E;&#x43D;&#x435;&#x43D;&#x438;&#x44F; (&#x43F;&#x43E;&#x441;&#x43B;&#x435; &#x431;&#x438;&#x442;&#x430;)</p>
+</div>
+      </div>
+    </td>
+    <td>
+      
+      
+    </td>
+  </tr>
+<tr data-ice="target">
+    <td>
+      <span class="access" data-ice="access">public</span>
+      
+      
+      
+      <span class="override" data-ice="override"></span>
+    </td>
+    <td>
+      <div>
+        <p>
+          
+          
+          <span data-ice="name"><span><a href="class/src/BeatTracking.js~Agent.html#instance-member-toleranceWndPre">toleranceWndPre</a></span></span><span data-ice="signature">: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span></span>
+        </p>
+      </div>
+      <div>
+        
+        
+        <div data-ice="description"><p>&#x432;&#x43D;&#x435;&#x448;&#x43D;&#x435;&#x435; &#x43E;&#x43A;&#x43D;&#x43E; &#x434;&#x43E;&#x43F;&#x443;&#x441;&#x442;&#x438;&#x43C;&#x43E;&#x433;&#x43E; &#x43E;&#x442;&#x43A;&#x43B;&#x43E;&#x43D;&#x435;&#x43D;&#x438;&#x44F; (&#x43F;&#x435;&#x440;&#x435;&#x434; &#x431;&#x438;&#x442;&#x43E;&#x43C;)</p>
+</div>
+      </div>
+    </td>
+    <td>
+      
+      
+    </td>
+  </tr>
+<tr data-ice="target">
+    <td>
+      <span class="access" data-ice="access">public</span>
+      
+      
+      
+      <span class="override" data-ice="override"></span>
+    </td>
+    <td>
+      <div>
+        <p>
+          
+          
+          <span data-ice="name"><span><a href="class/src/BeatTracking.js~Agent.html#instance-member-totalBeatCount">totalBeatCount</a></span></span><span data-ice="signature">: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span></span>
+        </p>
+      </div>
+      <div>
+        
+        
+        <div data-ice="description"><p>&#x41E;&#x431;&#x449;&#x435;&#x435; &#x43A;&#x43E;&#x43B;&#x438;&#x447;&#x435;&#x441;&#x442;&#x432;&#x43E; &#x431;&#x438;&#x442;&#x43E;&#x432; &#x430;&#x433;&#x435;&#x43D;&#x442;&#x430;</p>
+</div>
+      </div>
+    </td>
+    <td>
+      
+      
+    </td>
+  </tr>
+</tbody>
+</table>
+</div>
+<div data-ice="methodSummary"><h2>Method Summary</h2><table class="summary" data-ice="summary">
+  <thead><tr><td data-ice="title" colspan="3">Public Methods</td></tr></thead>
+  <tbody>
+  
+  <tr data-ice="target">
+    <td>
+      <span class="access" data-ice="access">public</span>
+      
+      
+      
+      <span class="override" data-ice="override"></span>
+    </td>
+    <td>
+      <div>
+        <p>
+          
+          
+          <span data-ice="name"><span><a href="class/src/BeatTracking.js~Agent.html#instance-method-acceptEvent">acceptEvent</a></span></span><span data-ice="signature">(eventTime: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span>, eventScore: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span>, err: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span>, beatCount: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span>)</span>
+        </p>
+      </div>
+      <div>
+        
+        
+        <div data-ice="description"><p>&#x414;&#x43E;&#x431;&#x430;&#x432;&#x43B;&#x435;&#x43D;&#x438;&#x44F; &#x43D;&#x43E;&#x432;&#x43E;&#x433;&#x43E; &#x432;&#x440;&#x435;&#x43C;&#x435;&#x43D;&#x438; &#x431;&#x438;&#x442;&#x430; &#x438; &#x43E;&#x431;&#x43D;&#x43E;&#x432;&#x43B;&#x435;&#x43D;&#x438;&#x44F; &#x441;&#x43E;&#x441;&#x442;&#x43E;&#x44F;&#x43D;&#x438;&#x44F; &#x430;&#x433;&#x435;&#x43D;&#x442;&#x430;</p>
+</div>
+      </div>
+    </td>
+    <td>
+      
+      
+    </td>
+  </tr>
+<tr data-ice="target">
+    <td>
+      <span class="access" data-ice="access">public</span>
+      
+      
+      
+      <span class="override" data-ice="override"></span>
+    </td>
+    <td>
+      <div>
+        <p>
+          
+          
+          <span data-ice="name"><span><a href="class/src/BeatTracking.js~Agent.html#instance-method-clone">clone</a></span></span><span data-ice="signature">(): <span><a href="class/src/BeatTracking.js~Agent.html">Agent</a></span></span>
+        </p>
+      </div>
+      <div>
+        
+        
+        <div data-ice="description"><p>&#x41A;&#x43B;&#x43E;&#x43D;&#x438;&#x440;&#x43E;&#x432;&#x430;&#x43D;&#x438;&#x435; &#x430;&#x433;&#x435;&#x43D;&#x442;&#x430;</p>
+</div>
+      </div>
+    </td>
+    <td>
+      
+      
+    </td>
+  </tr>
+<tr data-ice="target">
+    <td>
+      <span class="access" data-ice="access">public</span>
+      
+      
+      
+      <span class="override" data-ice="override"></span>
+    </td>
+    <td>
+      <div>
+        <p>
+          
+          
+          <span data-ice="name"><span><a href="class/src/BeatTracking.js~Agent.html#instance-method-considerEvent">considerEvent</a></span></span><span data-ice="signature">(eventTime: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span>, eventScore: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span>): <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">Boolean</a></span></span>
+        </p>
+      </div>
+      <div>
+        
+        
+        <div data-ice="description"><p>&#x41F;&#x440;&#x43E;&#x432;&#x435;&#x440;&#x43A;&#x430; &#x44F;&#x432;&#x43B;&#x44F;&#x435;&#x442;&#x441;&#x44F; &#x432;&#x440;&#x435;&#x43C;&#x44F; &#x432;&#x440;&#x435;&#x43C;&#x435;&#x43D;&#x435;&#x43C; &#x431;&#x438;&#x442;&#x430;</p>
+</div>
+      </div>
+    </td>
+    <td>
+      
+      
+    </td>
+  </tr>
+<tr data-ice="target">
+    <td>
+      <span class="access" data-ice="access">public</span>
+      
+      
+      
+      <span class="override" data-ice="override"></span>
+    </td>
+    <td>
+      <div>
+        <p>
+          
+          
+          <span data-ice="name"><span><a href="class/src/BeatTracking.js~Agent.html#instance-method-fillBeats">fillBeats</a></span></span><span data-ice="signature">()</span>
+        </p>
+      </div>
+      <div>
+        
+        
+        <div data-ice="description"><p>&#x417;&#x430;&#x43F;&#x43E;&#x43B;&#x43D;&#x435;&#x43D;&#x438;&#x435; &#x43F;&#x440;&#x43E;&#x43F;&#x443;&#x441;&#x43A;&#x43E;&#x432; &#x43C;&#x435;&#x436;&#x434;&#x443; &#x431;&#x438;&#x442;&#x430;&#x43C;&#x438;</p>
+</div>
+      </div>
+    </td>
+    <td>
+      
+      
+    </td>
+  </tr>
+</tbody>
+</table>
+</div>
+
+
+
+
+
+<div data-ice="constructorDetails"><h2 data-ice="title">Public Constructors</h2>
+
+<div class="detail" data-ice="detail">
+  <h3 data-ice="anchor" id="instance-constructor-constructor">
+    <span class="access" data-ice="access">public</span>
+    
+    
+    
+    
+    
+    <span data-ice="name">constructor</span><span data-ice="signature">(tempo: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span>, firstBeatTime: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span>, firsteventScore: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span>, agentList: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a></span>, params: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></span>)</span>
+    <span class="right-info">
+      
+      
+      <span data-ice="source"><span><a href="file/src/BeatTracking.js.html#lineNumber112">source</a></span></span>
+    </span>
+  </h3>
+
+  
+  
+  
+  <div data-ice="description"><p>&#x41A;&#x43E;&#x43D;&#x441;&#x442;&#x440;&#x443;&#x43A;&#x442;&#x43E;&#x440;</p>
+</div>
+
+  
+
+  <div data-ice="properties"><div data-ice="properties">
+  <h4 data-ice="title">Params:</h4>
+  <table class="params">
+    <thead>
+    <tr><td>Name</td><td>Type</td><td>Attribute</td><td>Description</td></tr>
+    </thead>
+    <tbody>
+    
+    <tr data-ice="property" data-depth="0">
+      <td data-ice="name" data-depth="0">tempo</td>
+      <td data-ice="type"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span></td>
+      <td data-ice="appendix"></td>
+      <td data-ice="description"><p>&#x437;&#x43D;&#x430;&#x447;&#x435;&#x43D;&#x438;&#x435; &#x442;&#x435;&#x43C;&#x43F;&#x430; &#x430;&#x433;&#x435;&#x43D;&#x442;&#x430;</p>
+</td>
+    </tr>
+<tr data-ice="property" data-depth="0">
+      <td data-ice="name" data-depth="0">firstBeatTime</td>
+      <td data-ice="type"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span></td>
+      <td data-ice="appendix"></td>
+      <td data-ice="description"><p>&#x432;&#x440;&#x435;&#x43C;&#x435;&#x43D;&#x43D;&#x430;&#x44F; &#x442;&#x43E;&#x447;&#x43A;&#x430; &#x441; &#x43A;&#x43E;&#x442;&#x43E;&#x440;&#x43E;&#x439; &#x430;&#x433;&#x435;&#x43D;&#x442; &#x43E;&#x442;&#x441;&#x447;&#x438;&#x442;&#x44B;&#x432;&#x430;&#x435;&#x442; &#x431;&#x438;&#x442;&#x44B;</p>
+</td>
+    </tr>
+<tr data-ice="property" data-depth="0">
+      <td data-ice="name" data-depth="0">firsteventScore</td>
+      <td data-ice="type"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span></td>
+      <td data-ice="appendix"></td>
+      <td data-ice="description"><p>&#x437;&#x43D;&#x430;&#x447;&#x435;&#x43D;&#x438;&#x435; &#x441;&#x43F;&#x435;&#x43A;&#x442;&#x440;&#x430;&#x43B;&#x44C;&#x43D;&#x43E;&#x433;&#x43E; &#x43F;&#x43E;&#x442;&#x43E;&#x43A;&#x430; &#x432; &#x44D;&#x442;&#x43E;&#x439; &#x442;&#x43E;&#x447;&#x43A;&#x435;</p>
+</td>
+    </tr>
+<tr data-ice="property" data-depth="0">
+      <td data-ice="name" data-depth="0">agentList</td>
+      <td data-ice="type"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a></span></td>
+      <td data-ice="appendix"></td>
+      <td data-ice="description"><p>&#x441;&#x441;&#x44B;&#x43B;&#x43A;&#x430; &#x43D;&#x430; &#x43C;&#x430;&#x441;&#x441;&#x438;&#x432; &#x430;&#x433;&#x435;&#x43D;&#x442;&#x43E;&#x432;</p>
+</td>
+    </tr>
+<tr data-ice="property" data-depth="0">
+      <td data-ice="name" data-depth="0">params</td>
+      <td data-ice="type"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></span></td>
+      <td data-ice="appendix"><ul><li>optional</li>
+<li>default: {}</li></ul></td>
+      <td data-ice="description"><p>&#x43F;&#x430;&#x440;&#x430;&#x43C;&#x435;&#x442;&#x440;&#x44B;</p>
+</td>
+    </tr>
+<tr data-ice="property" data-depth="1">
+      <td data-ice="name" data-depth="1">params.expiryTime</td>
+      <td data-ice="type"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span></td>
+      <td data-ice="appendix"><ul><li>optional</li>
+<li>default: 10</li></ul></td>
+      <td data-ice="description"><p>&#x432;&#x440;&#x435;&#x43C;&#x44F; &#x43F;&#x43E;&#x441;&#x43B;&#x435; &#x43A;&#x43E;&#x442;&#x43E;&#x440;&#x43E;&#x433;&#x43E; &#x430;&#x433;&#x435;&#x43D;&#x442; &#x43D;&#x435; &#x43F;&#x440;&#x438;&#x43D;&#x44F;&#x432;&#x448;&#x438;&#x439; &#x43D;&#x438; &#x43E;&#x434;&#x43D;&#x43E;&#x433;&#x43E; &#x431;&#x438;&#x442;&#x430; &#x443;&#x43D;&#x438;&#x447;&#x442;&#x43E;&#x436;&#x430;&#x435;&#x442;&#x441;&#x44F;</p>
+</td>
+    </tr>
+<tr data-ice="property" data-depth="1">
+      <td data-ice="name" data-depth="1">params.toleranceWndInner</td>
+      <td data-ice="type"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span></td>
+      <td data-ice="appendix"><ul><li>optional</li>
+<li>default: 0.04</li></ul></td>
+      <td data-ice="description"><p>&#x432;&#x43D;&#x443;&#x442;&#x440;&#x435;&#x43D;&#x43D;&#x435;&#x435; &#x43E;&#x43A;&#x43D;&#x43E; &#x434;&#x43E;&#x43F;&#x443;&#x441;&#x442;&#x438;&#x43C;&#x43E;&#x433;&#x43E; &#x43E;&#x442;&#x43A;&#x43B;&#x43E;&#x43D;&#x435;&#x43D;&#x438;&#x44F; &#x43E;&#x442; &#x43F;&#x440;&#x435;&#x434;&#x43F;&#x43E;&#x43B;&#x430;&#x433;&#x430;&#x435;&#x43C;&#x43E;&#x433;&#x43E; &#x432;&#x440;&#x435;&#x43C;&#x435;&#x43D;&#x438; &#x431;&#x438;&#x442;&#x430;</p>
+</td>
+    </tr>
+<tr data-ice="property" data-depth="1">
+      <td data-ice="name" data-depth="1">params.toleranceWndPre</td>
+      <td data-ice="type"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span></td>
+      <td data-ice="appendix"><ul><li>optional</li>
+<li>default: 0.15</li></ul></td>
+      <td data-ice="description"><p>&#x432;&#x43D;&#x435;&#x448;&#x43D;&#x435;&#x435; &#x43E;&#x43A;&#x43D;&#x43E; &#x434;&#x43E;&#x43F;&#x443;&#x441;&#x442;&#x438;&#x43C;&#x43E;&#x433;&#x43E; &#x43E;&#x442;&#x43A;&#x43B;&#x43E;&#x43D;&#x435;&#x43D;&#x438;&#x44F; (&#x43F;&#x435;&#x440;&#x435;&#x434; &#x431;&#x438;&#x442;&#x43E;&#x43C;)</p>
+</td>
+    </tr>
+<tr data-ice="property" data-depth="1">
+      <td data-ice="name" data-depth="1">params.toleranceWndPost</td>
+      <td data-ice="type"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span></td>
+      <td data-ice="appendix"><ul><li>optional</li>
+<li>default: 0.3</li></ul></td>
+      <td data-ice="description"><p>&#x432;&#x43D;&#x435;&#x448;&#x43D;&#x435;&#x435; &#x43E;&#x43A;&#x43D;&#x43E; &#x434;&#x43E;&#x43F;&#x443;&#x441;&#x442;&#x438;&#x43C;&#x43E;&#x433;&#x43E; &#x43E;&#x442;&#x43A;&#x43B;&#x43E;&#x43D;&#x435;&#x43D;&#x438;&#x44F; (&#x43F;&#x43E;&#x441;&#x43B;&#x435; &#x431;&#x438;&#x442;&#x430;)</p>
+</td>
+    </tr>
+<tr data-ice="property" data-depth="1">
+      <td data-ice="name" data-depth="1">params.correctionFactor</td>
+      <td data-ice="type"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span></td>
+      <td data-ice="appendix"><ul><li>optional</li>
+<li>default: 50</li></ul></td>
+      <td data-ice="description"><p>&#x43A;&#x43E;&#x44D;&#x444;&#x444;&#x438;&#x446;&#x438;&#x435;&#x43D;&#x442; &#x434;&#x43B;&#x44F; &#x43E;&#x431;&#x43D;&#x43E;&#x432;&#x43B;&#x435;&#x43D;&#x438;&#x44F; &#x442;&#x435;&#x43C;&#x43F;&#x430; &#x431;&#x438;&#x442;&#x430;</p>
+</td>
+    </tr>
+<tr data-ice="property" data-depth="1">
+      <td data-ice="name" data-depth="1">params.maxChange</td>
+      <td data-ice="type"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span></td>
+      <td data-ice="appendix"><ul><li>optional</li>
+<li>default: 0.2</li></ul></td>
+      <td data-ice="description"><p>&#x43A;&#x43E;&#x44D;&#x444;&#x444;&#x438;&#x446;&#x438;&#x435;&#x43D;&#x442; &#x43C;&#x430;&#x43A;&#x441;&#x438;&#x43C;&#x430;&#x43B;&#x44C;&#x43D;&#x43E;&#x433;&#x43E; &#x438;&#x437;&#x43C;&#x435;&#x43D;&#x435;&#x43D;&#x438;&#x44F; &#x442;&#x435;&#x43C;&#x43F;&#x430; &#x43E;&#x442; &#x43F;&#x435;&#x440;&#x432;&#x43E;&#x43D;&#x430;&#x447;&#x430;&#x43B;&#x44C;&#x43D;&#x43E;&#x433;&#x43E;</p>
+</td>
+    </tr>
+<tr data-ice="property" data-depth="1">
+      <td data-ice="name" data-depth="1">params.penaltyFactor</td>
+      <td data-ice="type"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span></td>
+      <td data-ice="appendix"><ul><li>optional</li>
+<li>default: 0.5</li></ul></td>
+      <td data-ice="description"><p>&#x43A;&#x43E;&#x44D;&#x444;&#x444;&#x438;&#x446;&#x438;&#x435;&#x43D;&#x442; &#x434;&#x43B;&#x44F; &#x440;&#x430;&#x441;&#x441;&#x447;&#x435;&#x442;&#x430; &#x448;&#x442;&#x440;&#x430;&#x444;&#x430; &#x437;&#x430; &#x43E;&#x442;&#x43A;&#x43B;&#x43E;&#x43D;&#x435;&#x43D;&#x438;&#x435; &#x43E;&#x442; &#x440;&#x435;&#x430;&#x43B;&#x44C;&#x43D;&#x43E;&#x433;&#x43E; &#x43E;&#x442; &#x43F;&#x440;&#x435;&#x434;&#x43F;&#x43E;&#x43B;&#x430;&#x433;&#x430;&#x435;&#x43C;&#x43E;&#x433;&#x43E; &#x432;&#x440;&#x435;&#x43C;&#x435;&#x43D;&#x438; &#x431;&#x438;&#x442;&#x430;</p>
+</td>
+    </tr>
+</tbody>
+  </table>
+</div>
+</div>
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+</div>
+</div>
+<div data-ice="memberDetails"><h2 data-ice="title">Public Members</h2>
+
+<div class="detail" data-ice="detail">
+  <h3 data-ice="anchor" id="instance-member-agentListRef">
+    <span class="access" data-ice="access">public</span>
+    
+    
+    
+    
+    
+    <span data-ice="name">agentListRef</span><span data-ice="signature">: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a></span></span>
+    <span class="right-info">
+      
+      
+      <span data-ice="source"><span><a href="file/src/BeatTracking.js.html#lineNumber187">source</a></span></span>
+    </span>
+  </h3>
+
+  
+  
+  
+  <div data-ice="description"><p>&#x421;&#x441;&#x44B;&#x43B;&#x43A;&#x430; &#x43D;&#x430; &#x441;&#x43F;&#x438;&#x441;&#x43E;&#x43A; &#x430;&#x433;&#x435;&#x43D;&#x442;&#x43E;&#x432;</p>
+</div>
+
+  
+
+  <div data-ice="properties">
+</div>
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+</div>
+<div class="detail" data-ice="detail">
+  <h3 data-ice="anchor" id="instance-member-beatInterval">
+    <span class="access" data-ice="access">public</span>
+    
+    
+    
+    
+    
+    <span data-ice="name">beatInterval</span><span data-ice="signature">: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span></span>
+    <span class="right-info">
+      
+      
+      <span data-ice="source"><span><a href="file/src/BeatTracking.js.html#lineNumber157">source</a></span></span>
+    </span>
+  </h3>
+
+  
+  
+  
+  <div data-ice="description"><p>&#x422;&#x435;&#x43C;&#x43F; &#x430;&#x433;&#x435;&#x43D;&#x442;&#x430;</p>
+</div>
+
+  
+
+  <div data-ice="properties">
+</div>
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+</div>
+<div class="detail" data-ice="detail">
+  <h3 data-ice="anchor" id="instance-member-beatTime">
+    <span class="access" data-ice="access">public</span>
+    
+    
+    
+    
+    
+    <span data-ice="name">beatTime</span><span data-ice="signature">: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span></span>
+    <span class="right-info">
+      
+      
+      <span data-ice="source"><span><a href="file/src/BeatTracking.js.html#lineNumber167">source</a></span></span>
+    </span>
+  </h3>
+
+  
+  
+  
+  <div data-ice="description"><p>&#x412;&#x440;&#x435;&#x43C;&#x44F; &#x43F;&#x43E;&#x441;&#x43B;&#x435;&#x434;&#x43D;&#x435;&#x43D;&#x433;&#x43E; &#x431;&#x438;&#x442;&#x430;</p>
+</div>
+
+  
+
+  <div data-ice="properties">
+</div>
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+</div>
+<div class="detail" data-ice="detail">
+  <h3 data-ice="anchor" id="instance-member-correctionFactor">
+    <span class="access" data-ice="access">public</span>
+    
+    
+    
+    
+    
+    <span data-ice="name">correctionFactor</span><span data-ice="signature">: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span></span>
+    <span class="right-info">
+      
+      
+      <span data-ice="source"><span><a href="file/src/BeatTracking.js.html#lineNumber141">source</a></span></span>
+    </span>
+  </h3>
+
+  
+  
+  
+  <div data-ice="description"><p>&#x43A;&#x43E;&#x44D;&#x444;&#x444;&#x438;&#x446;&#x438;&#x435;&#x43D;&#x442; &#x434;&#x43B;&#x44F; &#x43E;&#x431;&#x43D;&#x43E;&#x432;&#x43B;&#x435;&#x43D;&#x438;&#x44F; &#x442;&#x435;&#x43C;&#x43F;&#x430; &#x431;&#x438;&#x442;&#x430;</p>
+</div>
+
+  
+
+  <div data-ice="properties">
+</div>
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+</div>
+<div class="detail" data-ice="detail">
+  <h3 data-ice="anchor" id="instance-member-events">
+    <span class="access" data-ice="access">public</span>
+    
+    
+    
+    
+    
+    <span data-ice="name">events</span><span data-ice="signature">: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a></span></span>
+    <span class="right-info">
+      
+      
+      <span data-ice="source"><span><a href="file/src/BeatTracking.js.html#lineNumber177">source</a></span></span>
+    </span>
+  </h3>
+
+  
+  
+  
+  <div data-ice="description"><p>&#x41C;&#x430;&#x441;&#x441;&#x438;&#x432; &#x432;&#x440;&#x435;&#x43C;&#x435;&#x43D; &#x431;&#x438;&#x442;&#x43E;&#x432;</p>
+</div>
+
+  
+
+  <div data-ice="properties">
+</div>
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+</div>
+<div class="detail" data-ice="detail">
+  <h3 data-ice="anchor" id="instance-member-expiryTime">
+    <span class="access" data-ice="access">public</span>
+    
+    
+    
+    
+    
+    <span data-ice="name">expiryTime</span><span data-ice="signature">: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span></span>
+    <span class="right-info">
+      
+      
+      <span data-ice="source"><span><a href="file/src/BeatTracking.js.html#lineNumber117">source</a></span></span>
+    </span>
+  </h3>
+
+  
+  
+  
+  <div data-ice="description"><p>&#x412;&#x440;&#x435;&#x43C;&#x44F; &#x43F;&#x43E;&#x441;&#x43B;&#x435; &#x43A;&#x43E;&#x442;&#x43E;&#x440;&#x43E;&#x433;&#x43E; &#x430;&#x433;&#x435;&#x43D;&#x442; &#x43D;&#x435; &#x43F;&#x440;&#x438;&#x43D;&#x44F;&#x432;&#x448;&#x438;&#x439; &#x43D;&#x438; &#x43E;&#x434;&#x43D;&#x43E;&#x433;&#x43E; &#x431;&#x438;&#x442;&#x430; &#x443;&#x43D;&#x438;&#x447;&#x442;&#x43E;&#x436;&#x430;&#x435;&#x442;&#x441;&#x44F; </p>
+</div>
+
+  
+
+  <div data-ice="properties">
+</div>
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+</div>
+<div class="detail" data-ice="detail">
+  <h3 data-ice="anchor" id="instance-member-initialBeatInterval">
+    <span class="access" data-ice="access">public</span>
+    
+    
+    
+    
+    
+    <span data-ice="name">initialBeatInterval</span><span data-ice="signature">: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span></span>
+    <span class="right-info">
+      
+      
+      <span data-ice="source"><span><a href="file/src/BeatTracking.js.html#lineNumber162">source</a></span></span>
+    </span>
+  </h3>
+
+  
+  
+  
+  <div data-ice="description"><p>&#x41F;&#x435;&#x440;&#x432;&#x43E;&#x43D;&#x430;&#x447;&#x430;&#x43B;&#x44C;&#x43D;&#x44B;&#x439; &#x442;&#x435;&#x43C;&#x43F; &#x430;&#x433;&#x435;&#x43D;&#x442;&#x430;</p>
+</div>
+
+  
+
+  <div data-ice="properties">
+</div>
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+</div>
+<div class="detail" data-ice="detail">
+  <h3 data-ice="anchor" id="instance-member-maxChange">
+    <span class="access" data-ice="access">public</span>
+    
+    
+    
+    
+    
+    <span data-ice="name">maxChange</span><span data-ice="signature">: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span></span>
+    <span class="right-info">
+      
+      
+      <span data-ice="source"><span><a href="file/src/BeatTracking.js.html#lineNumber146">source</a></span></span>
+    </span>
+  </h3>
+
+  
+  
+  
+  <div data-ice="description"><p>&#x43A;&#x43E;&#x44D;&#x444;&#x444;&#x438;&#x446;&#x438;&#x435;&#x43D;&#x442; &#x43C;&#x430;&#x43A;&#x441;&#x438;&#x43C;&#x430;&#x43B;&#x44C;&#x43D;&#x43E;&#x433;&#x43E; &#x438;&#x437;&#x43C;&#x435;&#x43D;&#x435;&#x43D;&#x438;&#x44F; &#x442;&#x435;&#x43C;&#x43F;&#x430; &#x43E;&#x442; &#x43F;&#x435;&#x440;&#x432;&#x43E;&#x43D;&#x430;&#x447;&#x430;&#x43B;&#x44C;&#x43D;&#x43E;&#x433;&#x43E;</p>
+</div>
+
+  
+
+  <div data-ice="properties">
+</div>
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+</div>
+<div class="detail" data-ice="detail">
+  <h3 data-ice="anchor" id="instance-member-penaltyFactor">
+    <span class="access" data-ice="access">public</span>
+    
+    
+    
+    
+    
+    <span data-ice="name">penaltyFactor</span><span data-ice="signature">: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span></span>
+    <span class="right-info">
+      
+      
+      <span data-ice="source"><span><a href="file/src/BeatTracking.js.html#lineNumber151">source</a></span></span>
+    </span>
+  </h3>
+
+  
+  
+  
+  <div data-ice="description"><p>&#x43A;&#x43E;&#x44D;&#x444;&#x444;&#x438;&#x446;&#x438;&#x435;&#x43D;&#x442; &#x434;&#x43B;&#x44F; &#x440;&#x430;&#x441;&#x441;&#x447;&#x435;&#x442;&#x430; &#x448;&#x442;&#x440;&#x430;&#x444;&#x430; &#x437;&#x430; &#x43E;&#x442;&#x43A;&#x43B;&#x43E;&#x43D;&#x435;&#x43D;&#x438;&#x435; &#x43E;&#x442; &#x440;&#x435;&#x430;&#x43B;&#x44C;&#x43D;&#x43E;&#x433;&#x43E; &#x43E;&#x442; &#x43F;&#x440;&#x435;&#x434;&#x43F;&#x43E;&#x43B;&#x430;&#x433;&#x430;&#x435;&#x43C;&#x43E;&#x433;&#x43E; &#x432;&#x440;&#x435;&#x43C;&#x435;&#x43D;&#x438; &#x431;&#x438;&#x442;&#x430;</p>
+</div>
+
+  
+
+  <div data-ice="properties">
+</div>
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+</div>
+<div class="detail" data-ice="detail">
+  <h3 data-ice="anchor" id="instance-member-score">
+    <span class="access" data-ice="access">public</span>
+    
+    
+    
+    
+    
+    <span data-ice="name">score</span><span data-ice="signature">: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span></span>
+    <span class="right-info">
+      
+      
+      <span data-ice="source"><span><a href="file/src/BeatTracking.js.html#lineNumber182">source</a></span></span>
+    </span>
+  </h3>
+
+  
+  
+  
+  <div data-ice="description"><p>&#x41A;&#x43E;&#x43B;&#x438;&#x447;&#x435;&#x441;&#x442;&#x432;&#x43E; &#x43E;&#x447;&#x43A;&#x43E;&#x432; &#x430;&#x433;&#x435;&#x43D;&#x442;&#x430;</p>
+</div>
+
+  
+
+  <div data-ice="properties">
+</div>
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+</div>
+<div class="detail" data-ice="detail">
+  <h3 data-ice="anchor" id="instance-member-toleranceWndInner">
+    <span class="access" data-ice="access">public</span>
+    
+    
+    
+    
+    
+    <span data-ice="name">toleranceWndInner</span><span data-ice="signature">: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span></span>
+    <span class="right-info">
+      
+      
+      <span data-ice="source"><span><a href="file/src/BeatTracking.js.html#lineNumber122">source</a></span></span>
+    </span>
+  </h3>
+
+  
+  
+  
+  <div data-ice="description"><p>&#x432;&#x43D;&#x443;&#x442;&#x440;&#x435;&#x43D;&#x43D;&#x435;&#x435; &#x43E;&#x43A;&#x43D;&#x43E; &#x434;&#x43E;&#x43F;&#x443;&#x441;&#x442;&#x438;&#x43C;&#x43E;&#x433;&#x43E; &#x43E;&#x442;&#x43A;&#x43B;&#x43E;&#x43D;&#x435;&#x43D;&#x438;&#x44F; &#x43E;&#x442; &#x43F;&#x440;&#x435;&#x434;&#x43F;&#x43E;&#x43B;&#x430;&#x433;&#x430;&#x435;&#x43C;&#x43E;&#x433;&#x43E; &#x432;&#x440;&#x435;&#x43C;&#x435;&#x43D;&#x438; &#x431;&#x438;&#x442;&#x430;</p>
+</div>
+
+  
+
+  <div data-ice="properties">
+</div>
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+</div>
+<div class="detail" data-ice="detail">
+  <h3 data-ice="anchor" id="instance-member-toleranceWndPost">
+    <span class="access" data-ice="access">public</span>
+    
+    
+    
+    
+    
+    <span data-ice="name">toleranceWndPost</span><span data-ice="signature">: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span></span>
+    <span class="right-info">
+      
+      
+      <span data-ice="source"><span><a href="file/src/BeatTracking.js.html#lineNumber132">source</a></span></span>
+    </span>
+  </h3>
+
+  
+  
+  
+  <div data-ice="description"><p>&#x432;&#x43D;&#x435;&#x448;&#x43D;&#x435;&#x435; &#x43E;&#x43A;&#x43D;&#x43E; &#x434;&#x43E;&#x43F;&#x443;&#x441;&#x442;&#x438;&#x43C;&#x43E;&#x433;&#x43E; &#x43E;&#x442;&#x43A;&#x43B;&#x43E;&#x43D;&#x435;&#x43D;&#x438;&#x44F; (&#x43F;&#x43E;&#x441;&#x43B;&#x435; &#x431;&#x438;&#x442;&#x430;)</p>
+</div>
+
+  
+
+  <div data-ice="properties">
+</div>
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+</div>
+<div class="detail" data-ice="detail">
+  <h3 data-ice="anchor" id="instance-member-toleranceWndPre">
+    <span class="access" data-ice="access">public</span>
+    
+    
+    
+    
+    
+    <span data-ice="name">toleranceWndPre</span><span data-ice="signature">: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span></span>
+    <span class="right-info">
+      
+      
+      <span data-ice="source"><span><a href="file/src/BeatTracking.js.html#lineNumber127">source</a></span></span>
+    </span>
+  </h3>
+
+  
+  
+  
+  <div data-ice="description"><p>&#x432;&#x43D;&#x435;&#x448;&#x43D;&#x435;&#x435; &#x43E;&#x43A;&#x43D;&#x43E; &#x434;&#x43E;&#x43F;&#x443;&#x441;&#x442;&#x438;&#x43C;&#x43E;&#x433;&#x43E; &#x43E;&#x442;&#x43A;&#x43B;&#x43E;&#x43D;&#x435;&#x43D;&#x438;&#x44F; (&#x43F;&#x435;&#x440;&#x435;&#x434; &#x431;&#x438;&#x442;&#x43E;&#x43C;)</p>
+</div>
+
+  
+
+  <div data-ice="properties">
+</div>
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+</div>
+<div class="detail" data-ice="detail">
+  <h3 data-ice="anchor" id="instance-member-totalBeatCount">
+    <span class="access" data-ice="access">public</span>
+    
+    
+    
+    
+    
+    <span data-ice="name">totalBeatCount</span><span data-ice="signature">: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span></span>
+    <span class="right-info">
+      
+      
+      <span data-ice="source"><span><a href="file/src/BeatTracking.js.html#lineNumber172">source</a></span></span>
+    </span>
+  </h3>
+
+  
+  
+  
+  <div data-ice="description"><p>&#x41E;&#x431;&#x449;&#x435;&#x435; &#x43A;&#x43E;&#x43B;&#x438;&#x447;&#x435;&#x441;&#x442;&#x432;&#x43E; &#x431;&#x438;&#x442;&#x43E;&#x432; &#x430;&#x433;&#x435;&#x43D;&#x442;&#x430;</p>
+</div>
+
+  
+
+  <div data-ice="properties">
+</div>
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+</div>
+</div>
+<div data-ice="methodDetails"><h2 data-ice="title">Public Methods</h2>
+
+<div class="detail" data-ice="detail">
+  <h3 data-ice="anchor" id="instance-method-acceptEvent">
+    <span class="access" data-ice="access">public</span>
+    
+    
+    
+    
+    
+    <span data-ice="name">acceptEvent</span><span data-ice="signature">(eventTime: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span>, eventScore: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span>, err: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span>, beatCount: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span>)</span>
+    <span class="right-info">
+      
+      
+      <span data-ice="source"><span><a href="file/src/BeatTracking.js.html#lineNumber220">source</a></span></span>
+    </span>
+  </h3>
+
+  
+  
+  
+  <div data-ice="description"><p>&#x414;&#x43E;&#x431;&#x430;&#x432;&#x43B;&#x435;&#x43D;&#x438;&#x44F; &#x43D;&#x43E;&#x432;&#x43E;&#x433;&#x43E; &#x432;&#x440;&#x435;&#x43C;&#x435;&#x43D;&#x438; &#x431;&#x438;&#x442;&#x430; &#x438; &#x43E;&#x431;&#x43D;&#x43E;&#x432;&#x43B;&#x435;&#x43D;&#x438;&#x44F; &#x441;&#x43E;&#x441;&#x442;&#x43E;&#x44F;&#x43D;&#x438;&#x44F; &#x430;&#x433;&#x435;&#x43D;&#x442;&#x430;</p>
+</div>
+
+  
+
+  <div data-ice="properties"><div data-ice="properties">
+  <h4 data-ice="title">Params:</h4>
+  <table class="params">
+    <thead>
+    <tr><td>Name</td><td>Type</td><td>Attribute</td><td>Description</td></tr>
+    </thead>
+    <tbody>
+    
+    <tr data-ice="property" data-depth="0">
+      <td data-ice="name" data-depth="0">eventTime</td>
+      <td data-ice="type"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span></td>
+      <td data-ice="appendix"></td>
+      <td data-ice="description"><p>&#x440;&#x430;&#x441;&#x441;&#x43C;&#x430;&#x442;&#x440;&#x438;&#x432;&#x430;&#x435;&#x43C;&#x430;&#x44F; &#x432;&#x440;&#x435;&#x43C;&#x435;&#x43D;&#x43D;&#x430;&#x44F; &#x442;&#x43E;&#x447;&#x43A;&#x430;</p>
+</td>
+    </tr>
+<tr data-ice="property" data-depth="0">
+      <td data-ice="name" data-depth="0">eventScore</td>
+      <td data-ice="type"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span></td>
+      <td data-ice="appendix"></td>
+      <td data-ice="description"><p>&#x437;&#x43D;&#x430;&#x447;&#x435;&#x43D;&#x438;&#x435; &#x441;&#x43F;&#x435;&#x43A;&#x442;&#x440;&#x430;&#x43B;&#x44C;&#x43D;&#x43E;&#x433;&#x43E; &#x43F;&#x43E;&#x442;&#x43E;&#x43A;&#x430; &#x432; &#x44D;&#x442;&#x43E;&#x439; &#x442;&#x43E;&#x447;&#x43A;&#x435;</p>
+</td>
+    </tr>
+<tr data-ice="property" data-depth="0">
+      <td data-ice="name" data-depth="0">err</td>
+      <td data-ice="type"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span></td>
+      <td data-ice="appendix"></td>
+      <td data-ice="description"><p>&#x43E;&#x442;&#x43A;&#x43B;&#x43E;&#x43D;&#x435;&#x43D;&#x438;&#x435; &#x43E;&#x442; &#x43F;&#x440;&#x435;&#x434;&#x441;&#x43A;&#x430;&#x437;&#x430;&#x43D;&#x43D;&#x43E;&#x433;&#x43E; &#x432;&#x440;&#x435;&#x43C;&#x435;&#x43D;&#x438; &#x431;&#x438;&#x442;&#x430;</p>
+</td>
+    </tr>
+<tr data-ice="property" data-depth="0">
+      <td data-ice="name" data-depth="0">beatCount</td>
+      <td data-ice="type"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span></td>
+      <td data-ice="appendix"></td>
+      <td data-ice="description"><p>&#x43A;&#x43E;&#x43B;&#x438;&#x447;&#x435;&#x441;&#x442;&#x432;&#x43E; &#x431;&#x438;&#x442;&#x43E;&#x432; &#x43A;&#x43E;&#x442;&#x43E;&#x440;&#x43E;&#x435; &#x431;&#x44B;&#x43B;&#x43E; &#x43C;&#x435;&#x436;&#x434;&#x443; &#x43D;&#x43E;&#x432;&#x44B;&#x43C; &#x438; &#x43F;&#x43E;&#x441;&#x43B;&#x435;&#x434;&#x43D;&#x438;&#x43C; &#x431;&#x438;&#x442;&#x43E;&#x43C;</p>
+</td>
+    </tr>
+</tbody>
+  </table>
+</div>
+</div>
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+</div>
+<div class="detail" data-ice="detail">
+  <h3 data-ice="anchor" id="instance-method-clone">
+    <span class="access" data-ice="access">public</span>
+    
+    
+    
+    
+    
+    <span data-ice="name">clone</span><span data-ice="signature">(): <span><a href="class/src/BeatTracking.js~Agent.html">Agent</a></span></span>
+    <span class="right-info">
+      
+      
+      <span data-ice="source"><span><a href="file/src/BeatTracking.js.html#lineNumber260">source</a></span></span>
+    </span>
+  </h3>
+
+  
+  
+  
+  <div data-ice="description"><p>&#x41A;&#x43B;&#x43E;&#x43D;&#x438;&#x440;&#x43E;&#x432;&#x430;&#x43D;&#x438;&#x435; &#x430;&#x433;&#x435;&#x43D;&#x442;&#x430;</p>
+</div>
+
+  
+
+  <div data-ice="properties">
+</div>
+
+  <div class="return-params" data-ice="returnParams">
+    <h4>Return:</h4>
+    <table>
+      <tbody>
+        <tr>
+          <td class="return-type" data-ice="returnType"><span><a href="class/src/BeatTracking.js~Agent.html">Agent</a></span></td>
+          <td class="return-desc" data-ice="returnDescription"><p>&#x43A;&#x43B;&#x43E;&#x43D;&#x438;&#x440;&#x43E;&#x432;&#x430;&#x43D;&#x43D;&#x44B;&#x439; &#x430;&#x433;&#x435;&#x43D;&#x442;</p>
+</td>
+        </tr>
+      </tbody>
+    </table>
+    <div data-ice="returnProperties">
+</div>
+  </div>
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+</div>
+<div class="detail" data-ice="detail">
+  <h3 data-ice="anchor" id="instance-method-considerEvent">
+    <span class="access" data-ice="access">public</span>
+    
+    
+    
+    
+    
+    <span data-ice="name">considerEvent</span><span data-ice="signature">(eventTime: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span>, eventScore: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span>): <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">Boolean</a></span></span>
+    <span class="right-info">
+      
+      
+      <span data-ice="source"><span><a href="file/src/BeatTracking.js.html#lineNumber195">source</a></span></span>
+    </span>
+  </h3>
+
+  
+  
+  
+  <div data-ice="description"><p>&#x41F;&#x440;&#x43E;&#x432;&#x435;&#x440;&#x43A;&#x430; &#x44F;&#x432;&#x43B;&#x44F;&#x435;&#x442;&#x441;&#x44F; &#x432;&#x440;&#x435;&#x43C;&#x44F; &#x432;&#x440;&#x435;&#x43C;&#x435;&#x43D;&#x435;&#x43C; &#x431;&#x438;&#x442;&#x430;</p>
+</div>
+
+  
+
+  <div data-ice="properties"><div data-ice="properties">
+  <h4 data-ice="title">Params:</h4>
+  <table class="params">
+    <thead>
+    <tr><td>Name</td><td>Type</td><td>Attribute</td><td>Description</td></tr>
+    </thead>
+    <tbody>
+    
+    <tr data-ice="property" data-depth="0">
+      <td data-ice="name" data-depth="0">eventTime</td>
+      <td data-ice="type"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span></td>
+      <td data-ice="appendix"></td>
+      <td data-ice="description"><p>&#x440;&#x430;&#x441;&#x441;&#x43C;&#x430;&#x442;&#x440;&#x438;&#x432;&#x430;&#x435;&#x43C;&#x430;&#x44F; &#x432;&#x440;&#x435;&#x43C;&#x435;&#x43D;&#x43D;&#x430;&#x44F; &#x442;&#x43E;&#x447;&#x43A;&#x430;</p>
+</td>
+    </tr>
+<tr data-ice="property" data-depth="0">
+      <td data-ice="name" data-depth="0">eventScore</td>
+      <td data-ice="type"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span></td>
+      <td data-ice="appendix"></td>
+      <td data-ice="description"><p>&#x437;&#x43D;&#x430;&#x447;&#x435;&#x43D;&#x438;&#x435; &#x441;&#x43F;&#x435;&#x43A;&#x442;&#x440;&#x430;&#x43B;&#x44C;&#x43D;&#x43E;&#x433;&#x43E; &#x43F;&#x43E;&#x442;&#x43E;&#x43A;&#x430; &#x432; &#x44D;&#x442;&#x43E;&#x439; &#x442;&#x43E;&#x447;&#x43A;&#x435;</p>
+</td>
+    </tr>
+</tbody>
+  </table>
+</div>
+</div>
+
+  <div class="return-params" data-ice="returnParams">
+    <h4>Return:</h4>
+    <table>
+      <tbody>
+        <tr>
+          <td class="return-type" data-ice="returnType"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">Boolean</a></span></td>
+          <td class="return-desc" data-ice="returnDescription"><p>&#x43F;&#x440;&#x438;&#x43D;&#x44F;&#x442;&#x43E; &#x438;&#x43B;&#x438; &#x43D;&#x435;&#x442; &#x44D;&#x442;&#x43E; &#x432;&#x440;&#x435;&#x43C;&#x44F; &#x43A;&#x430;&#x43A; &#x432;&#x440;&#x435;&#x43C;&#x44F; &#x431;&#x438;&#x442;&#x430;</p>
+</td>
+        </tr>
+      </tbody>
+    </table>
+    <div data-ice="returnProperties">
+</div>
+  </div>
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+</div>
+<div class="detail" data-ice="detail">
+  <h3 data-ice="anchor" id="instance-method-fillBeats">
+    <span class="access" data-ice="access">public</span>
+    
+    
+    
+    
+    
+    <span data-ice="name">fillBeats</span><span data-ice="signature">()</span>
+    <span class="right-info">
+      
+      
+      <span data-ice="source"><span><a href="file/src/BeatTracking.js.html#lineNumber236">source</a></span></span>
+    </span>
+  </h3>
+
+  
+  
+  
+  <div data-ice="description"><p>&#x417;&#x430;&#x43F;&#x43E;&#x43B;&#x43D;&#x435;&#x43D;&#x438;&#x435; &#x43F;&#x440;&#x43E;&#x43F;&#x443;&#x441;&#x43A;&#x43E;&#x432; &#x43C;&#x435;&#x436;&#x434;&#x443; &#x431;&#x438;&#x442;&#x430;&#x43C;&#x438;</p>
+</div>
+
+  
+
+  <div data-ice="properties">
+</div>
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+</div>
+</div>
+</div>
+
+<footer class="footer">
+  Generated by <a href="https://esdoc.org">ESDoc<span data-ice="esdocVersion">(0.5.2)</span><img src="./image/esdoc-logo-mini-black.png"></a>
+</footer>
+
+<script src="script/search_index.js"></script>
+<script src="script/search.js"></script>
+<script src="script/pretty-print.js"></script>
+<script src="script/inherited-summary.js"></script>
+<script src="script/test-summary.js"></script>
+<script src="script/inner-link.js"></script>
+<script src="script/patch-for-local.js"></script>
+</body>
+</html>

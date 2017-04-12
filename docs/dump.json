@@ -1,0 +1,2927 @@
+[
+  {
+    "__docId__": 0,
+    "kind": "file",
+    "name": "src/Agent.js",
+    "content": "/** \r\n * Agent is the central class for beat tracking\r\n * @class\r\n */\r\nexport default class Agent {\r\n    /**\r\n     * Constructor\r\n     * @param {Number} tempo - tempo hypothesis of the Agent\r\n     * @param {Number} firstBeatTime - the time of the first beat accepted by this Agent\r\n     * @param {Number} firsteventScore - salience value of the first beat accepted by this Agent\r\n     * @param {Array} agentList - reference to the agent list \r\n     * @param {Object} [params={}] - parameters     \r\n     * @param {Number} [params.expiryTime=10] - the time after which an Agent that has not accepted any beat will be destroyed\r\n     * @param {Number} [params.toleranceWndInner=0.04] - the maximum time that a beat can deviate from the predicted beat time without a fork occurring\r\n     * @param {Number} [params.toleranceWndPre=0.15] - the maximum amount by which a beat can be earlier than the predicted beat time, expressed as a fraction of the beat period\r\n     * @param {Number} [params.toleranceWndPost=0.3] - the maximum amount by which a beat can be later than the predicted beat time, expressed as a fraction of the beat period\r\n     * @param {Number} [params.correctionFactor=50] - correction factor for updating beat period\r\n     * @param {Number} [params.maxChange=0.2] - the maximum allowed deviation from the initial tempo, expressed as a fraction of the initial beat period\r\n     * @param {Number} [params.penaltyFactor=0.5] - factor for correcting score, if onset do not coincide precisely with predicted beat time\r\n     */      \r\n    constructor(tempo, firstBeatTime, firsteventScore, agentList, params = {}) {\r\n        /** \r\n         * the time after which an Agent that has not accepted any beat will be destroyed\r\n         * @type {Number} \r\n         */\r\n        this.expiryTime = params.expiryTime || 10;\r\n        /** \r\n         * the maximum time that a beat can deviate from the predicted beat time without a fork occurring\r\n         * @type {Number} \r\n         */\r\n        this.toleranceWndInner = params.toleranceWndInner || 0.04;\r\n        /** \r\n         * the maximum amount by which a beat can be earlier than the predicted beat time, expressed as a fraction of the beat period\r\n         * @type {Number} \r\n         */\r\n        this.toleranceWndPre = params.toleranceWndPre || 0.15;\r\n        /** \r\n         * the maximum amount by which a beat can be later than the predicted beat time, expressed as a fraction of the beat period\r\n         * @type {Number} \r\n         */\r\n        this.toleranceWndPost = params.toleranceWndPost || 0.3;\r\n\r\n        this.toleranceWndPre *= tempo;\r\n        this.toleranceWndPost *= tempo;\r\n\r\n        /** \r\n         * correction factor for updating beat period\r\n         * @type {Number} \r\n         */\r\n        this.correctionFactor = params.correctionFactor || 50;\r\n        /** \r\n         * the maximum allowed deviation from the initial tempo, expressed as a fraction of the initial beat period\r\n         * @type {Number} \r\n         */        \r\n        this.maxChange = params.maxChange || 0.2;\r\n        /** \r\n         * factor for correcting score, if onset do not coincide precisely with predicted beat time\r\n         * @type {Number} \r\n         */        \r\n        this.penaltyFactor = params.penaltyFactor || 0.5;\r\n\r\n        /** \r\n         * the current tempo hypothesis of the Agent, expressed as the beat period\r\n         * @type {Number} \r\n         */ \r\n        this.beatInterval = tempo;\r\n        /** \r\n         * the initial tempo hypothesis of the Agent, expressed as the beat period\r\n         * @type {Number}\r\n         */         \r\n        this.initialBeatInterval = tempo;\r\n        /** \r\n         * the time of the most recent beat accepted by this Agent\r\n         * @type {Number} \r\n         */         \r\n        this.beatTime = firstBeatTime;\r\n        /** \r\n         * the number of beats found by this Agent, including interpolated beats\r\n         * @type {Number} \r\n         */         \r\n        this.totalBeatCount = 1;\r\n        /** \r\n         * the array of onsets accepted by this Agent as beats, plus interpolated beats\r\n         * @type {Array} \r\n         */         \r\n        this.events = [firstBeatTime];\r\n        /** \r\n         * sum of salience values of the onsets which have been interpreted as beats by this Agent\r\n         * @type {Number} \r\n         */         \r\n        this.score = firsteventScore;\r\n        /** \r\n         * reference to the agent list \r\n         * @type {Array} \r\n         */         \r\n        this.agentListRef = agentList;\r\n    }\r\n    /**\r\n     * The event time is tested if it is a beat time\r\n     * @param {Number} eventTime - the event time to be tested\r\n     * @param {Number} eventScore - salience values of the event time\r\n     * @return {Boolean} indicate whether the given event time was accepted as a beat time\r\n     */\r\n    considerEvent(eventTime, eventScore) {\r\n        if (eventTime - this.events[this.events.length - 1] > this.expiryTime) {\r\n            this.score = -1;\r\n            return false;\r\n        }\r\n\r\n        let beatCount = Math.round( (eventTime - this.beatTime) / this.beatInterval );\r\n        let err = eventTime - this.beatTime - beatCount * this.beatInterval;\r\n\r\n        if (beatCount > 0 && err >= -this.toleranceWndPre && err <= this.toleranceWndPost) {\r\n            if (Math.abs(err) > this.toleranceWndInner) {\r\n                this.agentListRef.push(this.clone());\r\n            }\r\n            this.acceptEvent(eventTime, eventScore, err, beatCount);\r\n            return true;\r\n        }\r\n        return false;\r\n    }\r\n    /**\r\n     * Accept the event time as a beat time, and update the state of the Agent accordingly\r\n     * @param {Number} eventTime - the event time to be accepted\r\n     * @param {Number} eventScore - salience values of the event time\r\n     * @param {Number} err - the difference between the predicted and actual beat times\r\n     * @param {Number} beatCount - the number of beats since the last beat\r\n     */    \r\n    acceptEvent(eventTime, eventScore, err, beatCount) {\r\n        this.beatTime = eventTime;\r\n        this.events.push(eventTime);\r\n\r\n        let corrErr = err / this.correctionFactor;\r\n        if (Math.abs(this.initialBeatInterval - this.beatInterval - corrErr) < this.maxChange * this.initialBeatInterval) {\r\n            this.beatInterval += corrErr;\r\n        }\r\n        this.totalBeatCount += beatCount;\r\n        let errFactor =  err > 0 ? err / this.toleranceWndPost : err / -this.toleranceWndPre;\r\n        let scoreFactor = 1 - this.penaltyFactor * errFactor;\r\n        this.score += eventScore * scoreFactor;\r\n    }\r\n    /**\r\n     * Interpolates missing beats in the Agent's beat track\r\n     */     \r\n    fillBeats() {\r\n        let prevBeat, nextBeat, currentInterval, beats;\r\n        prevBeat = 0;\r\n        if (this.events.length > 2) {\r\n            prevBeat = this.events[0];\r\n        }\r\n\r\n        for (let i = 0; i < this.events.length; i++) {\r\n            nextBeat = this.events[i];\r\n            beats = Math.round((nextBeat - prevBeat) / this.beatInterval - 0.01);\r\n            currentInterval = (nextBeat - prevBeat) / beats;\r\n            let k = 0;\r\n            for ( ; beats > 1; beats--) {\r\n                prevBeat += currentInterval;\r\n                this.events.splice(i + k, 0, prevBeat);\r\n                k++;\r\n            }\r\n            prevBeat = nextBeat;            \r\n        }\r\n    }\r\n    /**\r\n     * Makes a clone of the Agent\r\n     * @return {Agent} agent's clone\r\n     */     \r\n    clone() {\r\n        let newAgent = new Agent();\r\n        newAgent.beatInterval = this.beatInterval;\r\n        newAgent.initialBeatInterval = this.initialBeatInterval;\r\n        newAgent.beatTime = this.beatTime;\r\n        newAgent.totalBeatCount = this.totalBeatCount;\r\n        newAgent.events = this.events.slice();\r\n        newAgent.expiryTime = this.expiryTime;\r\n        newAgent.toleranceWndInner = this.toleranceWndInner;\r\n        newAgent.toleranceWndPre = this.toleranceWndPre;\r\n        newAgent.toleranceWndPost = this.toleranceWndPost;\r\n        newAgent.correctionFactor = this.correctionFactor;\r\n        newAgent.maxChange = this.maxChange;\r\n        newAgent.penaltyFactor = this.penaltyFactor;\r\n        newAgent.score = this.score;\r\n        newAgent.agentListRef = this.agentListRef;\r\n\r\n        return newAgent;\r\n    }\r\n}",
+    "static": true,
+    "longname": "src/Agent.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1
+  },
+  {
+    "__docId__": 1,
+    "kind": "class",
+    "name": "Agent",
+    "memberof": "src/Agent.js",
+    "static": true,
+    "longname": "src/Agent.js~Agent",
+    "access": null,
+    "export": true,
+    "importPath": "music-tempo-js/src/Agent.js",
+    "importStyle": "Agent",
+    "description": "Agent is the central class for beat tracking",
+    "lineNumber": 5,
+    "unknown": [
+      {
+        "tagName": "@class",
+        "tagValue": ""
+      }
+    ],
+    "interface": false
+  },
+  {
+    "__docId__": 2,
+    "kind": "constructor",
+    "name": "constructor",
+    "memberof": "src/Agent.js~Agent",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/Agent.js~Agent#constructor",
+    "access": null,
+    "description": "Constructor",
+    "lineNumber": 21,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "Number"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "tempo",
+        "description": "tempo hypothesis of the Agent"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Number"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "firstBeatTime",
+        "description": "the time of the first beat accepted by this Agent"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Number"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "firsteventScore",
+        "description": "salience value of the first beat accepted by this Agent"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Array"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "agentList",
+        "description": "reference to the agent list"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Object"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "{}",
+        "defaultRaw": {},
+        "name": "params",
+        "description": "parameters"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Number"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "10",
+        "defaultRaw": 10,
+        "name": "params.expiryTime",
+        "description": "the time after which an Agent that has not accepted any beat will be destroyed"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Number"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "0.04",
+        "defaultRaw": 0.04,
+        "name": "params.toleranceWndInner",
+        "description": "the maximum time that a beat can deviate from the predicted beat time without a fork occurring"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Number"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "0.15",
+        "defaultRaw": 0.15,
+        "name": "params.toleranceWndPre",
+        "description": "the maximum amount by which a beat can be earlier than the predicted beat time, expressed as a fraction of the beat period"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Number"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "0.3",
+        "defaultRaw": 0.3,
+        "name": "params.toleranceWndPost",
+        "description": "the maximum amount by which a beat can be later than the predicted beat time, expressed as a fraction of the beat period"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Number"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "50",
+        "defaultRaw": 50,
+        "name": "params.correctionFactor",
+        "description": "correction factor for updating beat period"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Number"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "0.2",
+        "defaultRaw": 0.2,
+        "name": "params.maxChange",
+        "description": "the maximum allowed deviation from the initial tempo, expressed as a fraction of the initial beat period"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Number"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "0.5",
+        "defaultRaw": 0.5,
+        "name": "params.penaltyFactor",
+        "description": "factor for correcting score, if onset do not coincide precisely with predicted beat time"
+      }
+    ]
+  },
+  {
+    "__docId__": 3,
+    "kind": "member",
+    "name": "expiryTime",
+    "memberof": "src/Agent.js~Agent",
+    "static": false,
+    "longname": "src/Agent.js~Agent#expiryTime",
+    "access": null,
+    "description": "the time after which an Agent that has not accepted any beat will be destroyed",
+    "lineNumber": 26,
+    "type": {
+      "nullable": null,
+      "types": [
+        "Number"
+      ],
+      "spread": false,
+      "description": null
+    }
+  },
+  {
+    "__docId__": 4,
+    "kind": "member",
+    "name": "toleranceWndInner",
+    "memberof": "src/Agent.js~Agent",
+    "static": false,
+    "longname": "src/Agent.js~Agent#toleranceWndInner",
+    "access": null,
+    "description": "the maximum time that a beat can deviate from the predicted beat time without a fork occurring",
+    "lineNumber": 31,
+    "type": {
+      "nullable": null,
+      "types": [
+        "Number"
+      ],
+      "spread": false,
+      "description": null
+    }
+  },
+  {
+    "__docId__": 5,
+    "kind": "member",
+    "name": "toleranceWndPre",
+    "memberof": "src/Agent.js~Agent",
+    "static": false,
+    "longname": "src/Agent.js~Agent#toleranceWndPre",
+    "access": null,
+    "description": "the maximum amount by which a beat can be earlier than the predicted beat time, expressed as a fraction of the beat period",
+    "lineNumber": 36,
+    "type": {
+      "nullable": null,
+      "types": [
+        "Number"
+      ],
+      "spread": false,
+      "description": null
+    }
+  },
+  {
+    "__docId__": 6,
+    "kind": "member",
+    "name": "toleranceWndPost",
+    "memberof": "src/Agent.js~Agent",
+    "static": false,
+    "longname": "src/Agent.js~Agent#toleranceWndPost",
+    "access": null,
+    "description": "the maximum amount by which a beat can be later than the predicted beat time, expressed as a fraction of the beat period",
+    "lineNumber": 41,
+    "type": {
+      "nullable": null,
+      "types": [
+        "Number"
+      ],
+      "spread": false,
+      "description": null
+    }
+  },
+  {
+    "__docId__": 7,
+    "kind": "member",
+    "name": "toleranceWndPre",
+    "memberof": "src/Agent.js~Agent",
+    "static": false,
+    "longname": "src/Agent.js~Agent#toleranceWndPre",
+    "access": null,
+    "description": null,
+    "lineNumber": 43,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 8,
+    "kind": "member",
+    "name": "toleranceWndPost",
+    "memberof": "src/Agent.js~Agent",
+    "static": false,
+    "longname": "src/Agent.js~Agent#toleranceWndPost",
+    "access": null,
+    "description": null,
+    "lineNumber": 44,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 9,
+    "kind": "member",
+    "name": "correctionFactor",
+    "memberof": "src/Agent.js~Agent",
+    "static": false,
+    "longname": "src/Agent.js~Agent#correctionFactor",
+    "access": null,
+    "description": "correction factor for updating beat period",
+    "lineNumber": 50,
+    "type": {
+      "nullable": null,
+      "types": [
+        "Number"
+      ],
+      "spread": false,
+      "description": null
+    }
+  },
+  {
+    "__docId__": 10,
+    "kind": "member",
+    "name": "maxChange",
+    "memberof": "src/Agent.js~Agent",
+    "static": false,
+    "longname": "src/Agent.js~Agent#maxChange",
+    "access": null,
+    "description": "the maximum allowed deviation from the initial tempo, expressed as a fraction of the initial beat period",
+    "lineNumber": 55,
+    "type": {
+      "nullable": null,
+      "types": [
+        "Number"
+      ],
+      "spread": false,
+      "description": null
+    }
+  },
+  {
+    "__docId__": 11,
+    "kind": "member",
+    "name": "penaltyFactor",
+    "memberof": "src/Agent.js~Agent",
+    "static": false,
+    "longname": "src/Agent.js~Agent#penaltyFactor",
+    "access": null,
+    "description": "factor for correcting score, if onset do not coincide precisely with predicted beat time",
+    "lineNumber": 60,
+    "type": {
+      "nullable": null,
+      "types": [
+        "Number"
+      ],
+      "spread": false,
+      "description": null
+    }
+  },
+  {
+    "__docId__": 12,
+    "kind": "member",
+    "name": "beatInterval",
+    "memberof": "src/Agent.js~Agent",
+    "static": false,
+    "longname": "src/Agent.js~Agent#beatInterval",
+    "access": null,
+    "description": "the current tempo hypothesis of the Agent, expressed as the beat period",
+    "lineNumber": 66,
+    "type": {
+      "nullable": null,
+      "types": [
+        "Number"
+      ],
+      "spread": false,
+      "description": null
+    }
+  },
+  {
+    "__docId__": 13,
+    "kind": "member",
+    "name": "initialBeatInterval",
+    "memberof": "src/Agent.js~Agent",
+    "static": false,
+    "longname": "src/Agent.js~Agent#initialBeatInterval",
+    "access": null,
+    "description": "the initial tempo hypothesis of the Agent, expressed as the beat period",
+    "lineNumber": 71,
+    "type": {
+      "nullable": null,
+      "types": [
+        "Number"
+      ],
+      "spread": false,
+      "description": null
+    }
+  },
+  {
+    "__docId__": 14,
+    "kind": "member",
+    "name": "beatTime",
+    "memberof": "src/Agent.js~Agent",
+    "static": false,
+    "longname": "src/Agent.js~Agent#beatTime",
+    "access": null,
+    "description": "the time of the most recent beat accepted by this Agent",
+    "lineNumber": 76,
+    "type": {
+      "nullable": null,
+      "types": [
+        "Number"
+      ],
+      "spread": false,
+      "description": null
+    }
+  },
+  {
+    "__docId__": 15,
+    "kind": "member",
+    "name": "totalBeatCount",
+    "memberof": "src/Agent.js~Agent",
+    "static": false,
+    "longname": "src/Agent.js~Agent#totalBeatCount",
+    "access": null,
+    "description": "the number of beats found by this Agent, including interpolated beats",
+    "lineNumber": 81,
+    "type": {
+      "nullable": null,
+      "types": [
+        "Number"
+      ],
+      "spread": false,
+      "description": null
+    }
+  },
+  {
+    "__docId__": 16,
+    "kind": "member",
+    "name": "events",
+    "memberof": "src/Agent.js~Agent",
+    "static": false,
+    "longname": "src/Agent.js~Agent#events",
+    "access": null,
+    "description": "the array of onsets accepted by this Agent as beats, plus interpolated beats",
+    "lineNumber": 86,
+    "type": {
+      "nullable": null,
+      "types": [
+        "Array"
+      ],
+      "spread": false,
+      "description": null
+    }
+  },
+  {
+    "__docId__": 17,
+    "kind": "member",
+    "name": "score",
+    "memberof": "src/Agent.js~Agent",
+    "static": false,
+    "longname": "src/Agent.js~Agent#score",
+    "access": null,
+    "description": "sum of salience values of the onsets which have been interpreted as beats by this Agent",
+    "lineNumber": 91,
+    "type": {
+      "nullable": null,
+      "types": [
+        "Number"
+      ],
+      "spread": false,
+      "description": null
+    }
+  },
+  {
+    "__docId__": 18,
+    "kind": "member",
+    "name": "agentListRef",
+    "memberof": "src/Agent.js~Agent",
+    "static": false,
+    "longname": "src/Agent.js~Agent#agentListRef",
+    "access": null,
+    "description": "reference to the agent list ",
+    "lineNumber": 96,
+    "type": {
+      "nullable": null,
+      "types": [
+        "Array"
+      ],
+      "spread": false,
+      "description": null
+    }
+  },
+  {
+    "__docId__": 19,
+    "kind": "method",
+    "name": "considerEvent",
+    "memberof": "src/Agent.js~Agent",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/Agent.js~Agent#considerEvent",
+    "access": null,
+    "description": "The event time is tested if it is a beat time",
+    "lineNumber": 104,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "Number"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "eventTime",
+        "description": "the event time to be tested"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Number"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "eventScore",
+        "description": "salience values of the event time"
+      }
+    ],
+    "return": {
+      "nullable": null,
+      "types": [
+        "Boolean"
+      ],
+      "spread": false,
+      "description": "indicate whether the given event time was accepted as a beat time"
+    }
+  },
+  {
+    "__docId__": 20,
+    "kind": "member",
+    "name": "score",
+    "memberof": "src/Agent.js~Agent",
+    "static": false,
+    "longname": "src/Agent.js~Agent#score",
+    "access": null,
+    "description": null,
+    "lineNumber": 106,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 21,
+    "kind": "method",
+    "name": "acceptEvent",
+    "memberof": "src/Agent.js~Agent",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/Agent.js~Agent#acceptEvent",
+    "access": null,
+    "description": "Accept the event time as a beat time, and update the state of the Agent accordingly",
+    "lineNumber": 129,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "Number"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "eventTime",
+        "description": "the event time to be accepted"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Number"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "eventScore",
+        "description": "salience values of the event time"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Number"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "err",
+        "description": "the difference between the predicted and actual beat times"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Number"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "beatCount",
+        "description": "the number of beats since the last beat"
+      }
+    ]
+  },
+  {
+    "__docId__": 22,
+    "kind": "member",
+    "name": "beatTime",
+    "memberof": "src/Agent.js~Agent",
+    "static": false,
+    "longname": "src/Agent.js~Agent#beatTime",
+    "access": null,
+    "description": null,
+    "lineNumber": 130,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 23,
+    "kind": "member",
+    "name": "beatInterval",
+    "memberof": "src/Agent.js~Agent",
+    "static": false,
+    "longname": "src/Agent.js~Agent#beatInterval",
+    "access": null,
+    "description": null,
+    "lineNumber": 135,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 24,
+    "kind": "member",
+    "name": "totalBeatCount",
+    "memberof": "src/Agent.js~Agent",
+    "static": false,
+    "longname": "src/Agent.js~Agent#totalBeatCount",
+    "access": null,
+    "description": null,
+    "lineNumber": 137,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 25,
+    "kind": "member",
+    "name": "score",
+    "memberof": "src/Agent.js~Agent",
+    "static": false,
+    "longname": "src/Agent.js~Agent#score",
+    "access": null,
+    "description": null,
+    "lineNumber": 140,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 26,
+    "kind": "method",
+    "name": "fillBeats",
+    "memberof": "src/Agent.js~Agent",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/Agent.js~Agent#fillBeats",
+    "access": null,
+    "description": "Interpolates missing beats in the Agent's beat track",
+    "lineNumber": 145,
+    "params": []
+  },
+  {
+    "__docId__": 27,
+    "kind": "method",
+    "name": "clone",
+    "memberof": "src/Agent.js~Agent",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/Agent.js~Agent#clone",
+    "access": null,
+    "description": "Makes a clone of the Agent",
+    "lineNumber": 169,
+    "params": [],
+    "return": {
+      "nullable": null,
+      "types": [
+        "Agent"
+      ],
+      "spread": false,
+      "description": "agent's clone"
+    }
+  },
+  {
+    "__docId__": 28,
+    "kind": "file",
+    "name": "src/BeatTracking.js",
+    "content": "import Agent from \"./Agent\";\r\n/** \r\n * Performs automatic beat tracking\r\n * @class\r\n */\r\nexport default class BeatTracking {\r\n    /**\r\n     * Perform beat tracking on a array of onsets\r\n     * @param {Array} events - the array of onsets to beat track\r\n     * @param {Array} eventsScores - the array of corresponding salience values\r\n     * @param {Array} tempoList - the array of tempo hypothesis \r\n     * @param {Object} [params={}] - parameters\r\n     * @param {Number} [params.initPeriod=5] - duration of the initial section\r\n     * @param {Number} [params.thresholdBI=0.02] - for the purpose of removing duplicate agents, the default JND of IBI\r\n     * @param {Number} [params.thresholdBT=0.04] - for the purpose of removing duplicate agents, the default JND of phase\r\n     * @param {Number} [params.expiryTime=10] - the time after which an Agent that has not accepted any beat will be destroyed\r\n     * @param {Number} [params.toleranceWndInner=0.04] - the maximum time that a beat can deviate from the predicted beat time without a fork occurring\r\n     * @param {Number} [params.toleranceWndPre=0.15] - the maximum amount by which a beat can be earlier than the predicted beat time, expressed as a fraction of the beat period\r\n     * @param {Number} [params.toleranceWndPost=0.3] - the maximum amount by which a beat can be later than the predicted beat time, expressed as a fraction of the beat period\r\n     * @param {Number} [params.correctionFactor=50] - correction factor for updating beat period\r\n     * @param {Number} [params.maxChange=0.2] - the maximum allowed deviation from the initial tempo, expressed as a fraction of the initial beat period\r\n     * @param {Number} [params.penaltyFactor=0.5] - factor for correcting score, if onset do not coincide precisely with predicted beat time\r\n     * @return {Array} agents - agents array\r\n     */\r\n    static trackBeat(events, eventsScores, tempoList, params = {}) {\r\n        const   initPeriod = params.initPeriod || 5,\r\n                thresholdBI = params.thresholdBI || 0.02,\r\n                thresholdBT = params.thresholdBT || 0.04;\r\n        function removeSimilarAgents() {\r\n            agents.sort( (a1, a2) => a1.beatInterval - a2.beatInterval );\r\n            const length = agents.length;\r\n            for (let i = 0; i < length; i++) {\r\n                if (agents[i].score < 0) continue;\r\n                for (let j = i + 1; j < length; j++) {\r\n                    if(agents[j].beatInterval - agents[i].beatInterval > thresholdBI) {\r\n                        break;\r\n                    }\r\n                    if(Math.abs(agents[j].beatTime - agents[i].beatTime) > thresholdBT) {\r\n                        continue;\r\n                    }\r\n                    if(agents[i].score < agents[j].score) {\r\n                        agents[i].score = -1;\r\n                    }\r\n                    else {\r\n                        agents[j].score = -1;\r\n                    }\r\n                }\r\n            }\r\n            for (let i = length - 1; i >= 0; i--) {\r\n                if (agents[i].score < 0) {\r\n                    agents.splice(i, 1);\r\n                }\r\n            }\r\n        }    \r\n        var agents = [];\r\n\r\n        for (let i = 0; i < tempoList.length; i++) {\r\n            agents.push(new Agent(tempoList[i], events[0], eventsScores[0], agents, params));\r\n        }\r\n        var j = 1;\r\n        removeSimilarAgents();\r\n\r\n        while (events[j] < initPeriod) {\r\n            let agentsLength = agents.length;\r\n            let prevBeatInterval = -1;\r\n            let isEventAccepted = true;\r\n            for (let k = 0; k < agentsLength; k++) {\r\n                if (agents[k].beatInterval != prevBeatInterval) {\r\n                    if (!isEventAccepted) {\r\n                        agents.push(new Agent(prevBeatInterval, events[j], eventsScores[j], agents, params));\r\n                    }\r\n                    prevBeatInterval = agents[k].beatInterval;\r\n                    isEventAccepted = false;\r\n                }\r\n                isEventAccepted = agents[k].considerEvent(events[j], eventsScores[j]) || isEventAccepted;   \r\n            }\r\n            removeSimilarAgents();\r\n            j++;\r\n        }\r\n        const eventsLength = events.length;\r\n        for (let i = j; i < eventsLength; i++) {\r\n            let agentsLength = agents.length;\r\n            for (let j = 0; j < agentsLength; j++) {\r\n                agents[j].considerEvent(events[i], eventsScores[i]);\r\n            }\r\n            removeSimilarAgents();\r\n        }\r\n\r\n        return agents;\r\n    }\r\n}",
+    "static": true,
+    "longname": "src/BeatTracking.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1
+  },
+  {
+    "__docId__": 29,
+    "kind": "class",
+    "name": "BeatTracking",
+    "memberof": "src/BeatTracking.js",
+    "static": true,
+    "longname": "src/BeatTracking.js~BeatTracking",
+    "access": null,
+    "export": true,
+    "importPath": "music-tempo-js/src/BeatTracking.js",
+    "importStyle": "BeatTracking",
+    "description": "Performs automatic beat tracking",
+    "lineNumber": 6,
+    "unknown": [
+      {
+        "tagName": "@class",
+        "tagValue": ""
+      }
+    ],
+    "interface": false
+  },
+  {
+    "__docId__": 30,
+    "kind": "method",
+    "name": "trackBeat",
+    "memberof": "src/BeatTracking.js~BeatTracking",
+    "generator": false,
+    "async": false,
+    "static": true,
+    "longname": "src/BeatTracking.js~BeatTracking.trackBeat",
+    "access": null,
+    "description": "Perform beat tracking on a array of onsets",
+    "lineNumber": 25,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "Array"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "events",
+        "description": "the array of onsets to beat track"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Array"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "eventsScores",
+        "description": "the array of corresponding salience values"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Array"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "tempoList",
+        "description": "the array of tempo hypothesis"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Object"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "{}",
+        "defaultRaw": {},
+        "name": "params",
+        "description": "parameters"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Number"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "5",
+        "defaultRaw": 5,
+        "name": "params.initPeriod",
+        "description": "duration of the initial section"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Number"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "0.02",
+        "defaultRaw": 0.02,
+        "name": "params.thresholdBI",
+        "description": "for the purpose of removing duplicate agents, the default JND of IBI"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Number"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "0.04",
+        "defaultRaw": 0.04,
+        "name": "params.thresholdBT",
+        "description": "for the purpose of removing duplicate agents, the default JND of phase"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Number"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "10",
+        "defaultRaw": 10,
+        "name": "params.expiryTime",
+        "description": "the time after which an Agent that has not accepted any beat will be destroyed"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Number"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "0.04",
+        "defaultRaw": 0.04,
+        "name": "params.toleranceWndInner",
+        "description": "the maximum time that a beat can deviate from the predicted beat time without a fork occurring"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Number"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "0.15",
+        "defaultRaw": 0.15,
+        "name": "params.toleranceWndPre",
+        "description": "the maximum amount by which a beat can be earlier than the predicted beat time, expressed as a fraction of the beat period"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Number"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "0.3",
+        "defaultRaw": 0.3,
+        "name": "params.toleranceWndPost",
+        "description": "the maximum amount by which a beat can be later than the predicted beat time, expressed as a fraction of the beat period"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Number"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "50",
+        "defaultRaw": 50,
+        "name": "params.correctionFactor",
+        "description": "correction factor for updating beat period"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Number"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "0.2",
+        "defaultRaw": 0.2,
+        "name": "params.maxChange",
+        "description": "the maximum allowed deviation from the initial tempo, expressed as a fraction of the initial beat period"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Number"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "0.5",
+        "defaultRaw": 0.5,
+        "name": "params.penaltyFactor",
+        "description": "factor for correcting score, if onset do not coincide precisely with predicted beat time"
+      }
+    ],
+    "return": {
+      "nullable": null,
+      "types": [
+        "Array"
+      ],
+      "spread": false,
+      "description": "agents - agents array"
+    }
+  },
+  {
+    "__docId__": 31,
+    "kind": "file",
+    "name": "src/FFT.js",
+    "content": "/** \r\n * Class containing methods for Fast Fourier Transform\r\n * @class\r\n */\r\nexport default class FFT {\r\n    /**\r\n     * Get Hamming window\r\n     * @param {Number} bufferSize - windows size\r\n     * @return {Array} wnd - Hamming window\r\n     */       \r\n    static getHammingWindow(bufferSize) {\r\n        const a = 25 / 46;\r\n        const b = 21 / 46;\r\n        const scale = 1 / bufferSize / 0.54; \r\n        const sqrtBufferSize =  Math.sqrt(bufferSize);\r\n        const factor = (Math.PI * 2) / bufferSize;\r\n        let wnd = [];\r\n        for (let i = 0; i < bufferSize; i++) {\r\n            wnd[i] = sqrtBufferSize * (scale * (a - b * Math.cos(factor * i))) ;\r\n        }\r\n        return wnd;\r\n    }\r\n    /**\r\n     * Computes FFT and converts the results to magnitude representation\r\n     * @param {Array} re - the real part of the input data and the magnitude of the output data\r\n     * @param {Array} im - the imaginary part of the input data\r\n     */\r\n    static getSpectrum(re, im) {\r\n        const direction = -1;\r\n        const n = re.length;\r\n        const bits = Math.round(Math.log(n) / Math.log(2));\r\n        const twoPI = Math.PI * 2;\r\n        if (n != (1 << bits))\r\n            throw new Error(\"FFT data must be power of 2\");\r\n        let localN;\r\n        let j = 0;        \r\n        for (let i = 0; i < n-1; i++) {\r\n            if (i < j) {\r\n                let temp = re[j];\r\n                re[j] = re[i];\r\n                re[i] = temp;\r\n                temp = im[j];\r\n                im[j] = im[i];\r\n                im[i] = temp;\r\n            }\r\n            let k = n / 2;\r\n            while ((k >= 1) &&  (k - 1 < j)) {\r\n                j = j - k;\r\n                k = k / 2;\r\n            }\r\n            j = j + k;\r\n        }\r\n        for(let m = 1; m <= bits; m++) {\r\n            localN = 1 << m;\r\n            let Wjk_r = 1;\r\n            let Wjk_i = 0;\r\n            let theta = twoPI / localN;\r\n            let Wj_r = Math.cos(theta);\r\n            let Wj_i = direction * Math.sin(theta);\r\n            let nby2 = localN / 2;\r\n            for (j = 0; j < nby2; j++) {\r\n                for (let k = j; k < n; k += localN) {\r\n                    let id = k + nby2;\r\n                    let tempr = Wjk_r * re[id] - Wjk_i * im[id];\r\n                    let tempi = Wjk_r * im[id] + Wjk_i * re[id];\r\n                    re[id] = re[k] - tempr;\r\n                    im[id] = im[k] - tempi;\r\n                    re[k] += tempr;\r\n                    im[k] += tempi;\r\n                }\r\n                let wtemp = Wjk_r;\r\n                Wjk_r = Wj_r * Wjk_r  - Wj_i * Wjk_i;\r\n                Wjk_i = Wj_r * Wjk_i  + Wj_i * wtemp;\r\n            }\r\n        }\r\n\r\n        for (let i = 0; i < re.length; i++) {\r\n            let pow = re[i] * re[i] + im[i] * im[i];\r\n            //im[i] = Math.atan2(im[i], re[i]);\r\n            re[i] = pow;\r\n        }\r\n\r\n        for (let i = 0; i < re.length; i++)\r\n            re[i] = Math.sqrt(re[i]);\r\n\r\n    }\r\n}",
+    "static": true,
+    "longname": "src/FFT.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1
+  },
+  {
+    "__docId__": 32,
+    "kind": "class",
+    "name": "FFT",
+    "memberof": "src/FFT.js",
+    "static": true,
+    "longname": "src/FFT.js~FFT",
+    "access": null,
+    "export": true,
+    "importPath": "music-tempo-js/src/FFT.js",
+    "importStyle": "FFT",
+    "description": "Class containing methods for Fast Fourier Transform",
+    "lineNumber": 5,
+    "unknown": [
+      {
+        "tagName": "@class",
+        "tagValue": ""
+      }
+    ],
+    "interface": false
+  },
+  {
+    "__docId__": 33,
+    "kind": "method",
+    "name": "getHammingWindow",
+    "memberof": "src/FFT.js~FFT",
+    "generator": false,
+    "async": false,
+    "static": true,
+    "longname": "src/FFT.js~FFT.getHammingWindow",
+    "access": null,
+    "description": "Get Hamming window",
+    "lineNumber": 11,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "Number"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "bufferSize",
+        "description": "windows size"
+      }
+    ],
+    "return": {
+      "nullable": null,
+      "types": [
+        "Array"
+      ],
+      "spread": false,
+      "description": "wnd - Hamming window"
+    }
+  },
+  {
+    "__docId__": 34,
+    "kind": "method",
+    "name": "getSpectrum",
+    "memberof": "src/FFT.js~FFT",
+    "generator": false,
+    "async": false,
+    "static": true,
+    "longname": "src/FFT.js~FFT.getSpectrum",
+    "access": null,
+    "description": "Computes FFT and converts the results to magnitude representation",
+    "lineNumber": 28,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "Array"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "re",
+        "description": "the real part of the input data and the magnitude of the output data"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Array"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "im",
+        "description": "the imaginary part of the input data"
+      }
+    ]
+  },
+  {
+    "__docId__": 35,
+    "kind": "file",
+    "name": "src/MusicTempo.js",
+    "content": "import OnsetDetection from \"./OnsetDetection\";\r\nimport TempoInduction from \"./TempoInduction\";\r\nimport BeatTracking from \"./BeatTracking\";\r\nimport FFT from \"./FFT\";\r\n\r\n/** \r\n * Class combines the work of all the steps of tempo extraction\r\n * @class\r\n */\r\nexport default class MusicTempo {\r\n    /**\r\n     * Constructor\r\n     * @param {Float32Array} audioData - non-interleaved IEEE 32-bit linear PCM with a nominal range of -1 -> +1 (Web Audio API - Audio Buffer)\r\n     * @param {Object} [params={}] - parameters\r\n     * @param {Number} [params.bufferSize=2048] - FFT windows size\r\n     * @param {Number} [params.hopSize=441] - spacing of audio frames in samples\r\n     * @param {Number} [params.decayRate=0.84] - how quickly previous peaks are forgotten\r\n     * @param {Number} [params.peakFindingWindow=6] - minimum distance between peaks\r\n     * @param {Number} [params.meanWndMultiplier=3] - multiplier for peak finding window\r\n     * @param {Number} [params.peakThreshold=0.35] - minimum value of peaks\r\n     * @param {Number} [params.widthTreshold=0.025] - the maximum difference in IOIs which are in the same cluster\r\n     * @param {Number} [params.maxIOI=2.5] - the maximum IOI for inclusion in a cluster\r\n     * @param {Number} [params.minIOI=0.07] - the minimum IOI for inclusion in a cluster\r\n     * @param {Number} [params.maxTempos=10] - initial amount of tempo hypotheses\r\n     * @param {Number} [params.minBeatInterval=0.3] - the minimum inter-beat interval (IBI) (0.30 seconds == 200 BPM)\r\n     * @param {Number} [params.maxBeatInterval=1] - the maximum inter-beat interval (IBI) (1.00 seconds ==  60 BPM)\r\n     * @param {Number} [params.initPeriod=5] - duration of the initial section\r\n     * @param {Number} [params.thresholdBI=0.02] - for the purpose of removing duplicate agents, the default JND of IBI\r\n     * @param {Number} [params.thresholdBT=0.04] - for the purpose of removing duplicate agents, the default JND of phase\r\n     * @param {Number} [params.expiryTime=10] - the time after which an Agent that has not accepted any beat will be destroyed\r\n     * @param {Number} [params.toleranceWndInner=0.04] - the maximum time that a beat can deviate from the predicted beat time without a fork occurring\r\n     * @param {Number} [params.toleranceWndPre=0.15] - the maximum amount by which a beat can be earlier than the predicted beat time, expressed as a fraction of the beat period\r\n     * @param {Number} [params.toleranceWndPost=0.3] - the maximum amount by which a beat can be later than the predicted beat time, expressed as a fraction of the beat period\r\n     * @param {Number} [params.correctionFactor=50] - correction factor for updating beat period\r\n     * @param {Number} [params.maxChange=0.2] - the maximum allowed deviation from the initial tempo, expressed as a fraction of the initial beat period\r\n     * @param {Number} [params.penaltyFactor=0.5] - factor for correcting score, if onset do not coincide precisely with predicted beat time\r\n     */    \r\n    constructor(audioData, params = {}) {\r\n        if ( !(audioData instanceof Float32Array) && !Array.isArray(audioData)) {\r\n            throw \"Параметр audioData не является массивом\";\r\n        }\r\n        const timeStep = params.timeStep || 0.01;\r\n        let res = OnsetDetection.calculateSF(audioData, FFT, params);\r\n        /** \r\n         * Spectral flux\r\n         * @type {Array} \r\n         */          \r\n        this.spectralFlux = res;\r\n        OnsetDetection.normalize(this.spectralFlux);\r\n        /** \r\n         * Spectral flux peaks indexes\r\n         * @type {Array} \r\n         */         \r\n        this.peaks = OnsetDetection.findPeaks(this.spectralFlux, params);\r\n        /** \r\n         * Onsets times array\r\n         * @type {Array} \r\n         */ \r\n        this.events = this.peaks.map(a => a * timeStep);\r\n\r\n        let clusters = TempoInduction.processRhythmicEvents(this.events, params);\r\n        clusters = TempoInduction.mergeClusters(clusters, params); \r\n        let scores = TempoInduction.calculateScore(clusters, params);\r\n        clusters = {\r\n            clIntervals: clusters.clIntervals,\r\n            clSizes: clusters.clSizes,\r\n            clScores: scores.clScores,\r\n            clScoresIdxs: scores.clScoresIdxs\r\n        };\r\n        /** \r\n         * Tempo hypotheses array\r\n         * @type {Array} \r\n         */ \r\n        this.tempoList = TempoInduction.createTempoList(clusters, params);\r\n\r\n        let minSFValue = this.spectralFlux.reduce( (a, b) => Math.min(a, b) );\r\n        let eventsScores = this.peaks.map(a => this.spectralFlux[a] - minSFValue);\r\n        /** \r\n         * Agents array\r\n         * @type {Array} \r\n         */         \r\n        this.agents = BeatTracking.trackBeat(this.events, eventsScores, this.tempoList, params);\r\n\r\n        let bestScore = -1;\r\n        let idxBestAgent = -1;\r\n        /** \r\n         * The tempo value in beats per minute\r\n         * @type {Number} \r\n         */          \r\n        this.tempo = -1;\r\n        /** \r\n         * Beat times array\r\n         * @type {Array} \r\n         */          \r\n        this.beats = [];\r\n        /** \r\n         * Inter-beat interval\r\n         * @type {Number} \r\n         */        \r\n        this.beatInterval = -1;\r\n\r\n        for (let i = 0; i < this.agents.length; i++) {\r\n            if(this.agents[i].score > bestScore) {\r\n                bestScore = this.agents[i].score;\r\n                idxBestAgent = i;\r\n            }\r\n        }\r\n        if (this.agents[idxBestAgent]) {\r\n            /** \r\n             * The agent with the highest score\r\n             * @type {Agent} \r\n             */             \r\n            this.bestAgent = this.agents[idxBestAgent];\r\n            this.bestAgent.fillBeats();\r\n            this.tempo = (60 / this.bestAgent.beatInterval).toFixed(3);\r\n            this.beatInterval = this.bestAgent.beatInterval;\r\n            this.beats = this.bestAgent.events;\r\n        }\r\n        if (this.tempo == -1) {\r\n            throw \"Tempo extraction failed\";\r\n        }\r\n    }\r\n}",
+    "static": true,
+    "longname": "src/MusicTempo.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1
+  },
+  {
+    "__docId__": 36,
+    "kind": "class",
+    "name": "MusicTempo",
+    "memberof": "src/MusicTempo.js",
+    "static": true,
+    "longname": "src/MusicTempo.js~MusicTempo",
+    "access": null,
+    "export": true,
+    "importPath": "music-tempo-js/src/MusicTempo.js",
+    "importStyle": "MusicTempo",
+    "description": "Class combines the work of all the steps of tempo extraction",
+    "lineNumber": 10,
+    "unknown": [
+      {
+        "tagName": "@class",
+        "tagValue": ""
+      }
+    ],
+    "interface": false
+  },
+  {
+    "__docId__": 37,
+    "kind": "constructor",
+    "name": "constructor",
+    "memberof": "src/MusicTempo.js~MusicTempo",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/MusicTempo.js~MusicTempo#constructor",
+    "access": null,
+    "description": "Constructor",
+    "lineNumber": 38,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "Float32Array"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "audioData",
+        "description": "non-interleaved IEEE 32-bit linear PCM with a nominal range of -1 -> +1 (Web Audio API - Audio Buffer)"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Object"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "{}",
+        "defaultRaw": {},
+        "name": "params",
+        "description": "parameters"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Number"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "2048",
+        "defaultRaw": 2048,
+        "name": "params.bufferSize",
+        "description": "FFT windows size"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Number"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "441",
+        "defaultRaw": 441,
+        "name": "params.hopSize",
+        "description": "spacing of audio frames in samples"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Number"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "0.84",
+        "defaultRaw": 0.84,
+        "name": "params.decayRate",
+        "description": "how quickly previous peaks are forgotten"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Number"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "6",
+        "defaultRaw": 6,
+        "name": "params.peakFindingWindow",
+        "description": "minimum distance between peaks"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Number"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "3",
+        "defaultRaw": 3,
+        "name": "params.meanWndMultiplier",
+        "description": "multiplier for peak finding window"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Number"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "0.35",
+        "defaultRaw": 0.35,
+        "name": "params.peakThreshold",
+        "description": "minimum value of peaks"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Number"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "0.025",
+        "defaultRaw": 0.025,
+        "name": "params.widthTreshold",
+        "description": "the maximum difference in IOIs which are in the same cluster"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Number"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "2.5",
+        "defaultRaw": 2.5,
+        "name": "params.maxIOI",
+        "description": "the maximum IOI for inclusion in a cluster"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Number"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "0.07",
+        "defaultRaw": 0.07,
+        "name": "params.minIOI",
+        "description": "the minimum IOI for inclusion in a cluster"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Number"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "10",
+        "defaultRaw": 10,
+        "name": "params.maxTempos",
+        "description": "initial amount of tempo hypotheses"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Number"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "0.3",
+        "defaultRaw": 0.3,
+        "name": "params.minBeatInterval",
+        "description": "the minimum inter-beat interval (IBI) (0.30 seconds == 200 BPM)"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Number"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "1",
+        "defaultRaw": 1,
+        "name": "params.maxBeatInterval",
+        "description": "the maximum inter-beat interval (IBI) (1.00 seconds ==  60 BPM)"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Number"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "5",
+        "defaultRaw": 5,
+        "name": "params.initPeriod",
+        "description": "duration of the initial section"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Number"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "0.02",
+        "defaultRaw": 0.02,
+        "name": "params.thresholdBI",
+        "description": "for the purpose of removing duplicate agents, the default JND of IBI"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Number"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "0.04",
+        "defaultRaw": 0.04,
+        "name": "params.thresholdBT",
+        "description": "for the purpose of removing duplicate agents, the default JND of phase"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Number"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "10",
+        "defaultRaw": 10,
+        "name": "params.expiryTime",
+        "description": "the time after which an Agent that has not accepted any beat will be destroyed"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Number"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "0.04",
+        "defaultRaw": 0.04,
+        "name": "params.toleranceWndInner",
+        "description": "the maximum time that a beat can deviate from the predicted beat time without a fork occurring"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Number"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "0.15",
+        "defaultRaw": 0.15,
+        "name": "params.toleranceWndPre",
+        "description": "the maximum amount by which a beat can be earlier than the predicted beat time, expressed as a fraction of the beat period"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Number"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "0.3",
+        "defaultRaw": 0.3,
+        "name": "params.toleranceWndPost",
+        "description": "the maximum amount by which a beat can be later than the predicted beat time, expressed as a fraction of the beat period"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Number"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "50",
+        "defaultRaw": 50,
+        "name": "params.correctionFactor",
+        "description": "correction factor for updating beat period"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Number"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "0.2",
+        "defaultRaw": 0.2,
+        "name": "params.maxChange",
+        "description": "the maximum allowed deviation from the initial tempo, expressed as a fraction of the initial beat period"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Number"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "0.5",
+        "defaultRaw": 0.5,
+        "name": "params.penaltyFactor",
+        "description": "factor for correcting score, if onset do not coincide precisely with predicted beat time"
+      }
+    ]
+  },
+  {
+    "__docId__": 38,
+    "kind": "member",
+    "name": "spectralFlux",
+    "memberof": "src/MusicTempo.js~MusicTempo",
+    "static": false,
+    "longname": "src/MusicTempo.js~MusicTempo#spectralFlux",
+    "access": null,
+    "description": "Spectral flux",
+    "lineNumber": 48,
+    "type": {
+      "nullable": null,
+      "types": [
+        "Array"
+      ],
+      "spread": false,
+      "description": null
+    }
+  },
+  {
+    "__docId__": 39,
+    "kind": "member",
+    "name": "peaks",
+    "memberof": "src/MusicTempo.js~MusicTempo",
+    "static": false,
+    "longname": "src/MusicTempo.js~MusicTempo#peaks",
+    "access": null,
+    "description": "Spectral flux peaks indexes",
+    "lineNumber": 54,
+    "type": {
+      "nullable": null,
+      "types": [
+        "Array"
+      ],
+      "spread": false,
+      "description": null
+    }
+  },
+  {
+    "__docId__": 40,
+    "kind": "member",
+    "name": "events",
+    "memberof": "src/MusicTempo.js~MusicTempo",
+    "static": false,
+    "longname": "src/MusicTempo.js~MusicTempo#events",
+    "access": null,
+    "description": "Onsets times array",
+    "lineNumber": 59,
+    "type": {
+      "nullable": null,
+      "types": [
+        "Array"
+      ],
+      "spread": false,
+      "description": null
+    }
+  },
+  {
+    "__docId__": 41,
+    "kind": "member",
+    "name": "tempoList",
+    "memberof": "src/MusicTempo.js~MusicTempo",
+    "static": false,
+    "longname": "src/MusicTempo.js~MusicTempo#tempoList",
+    "access": null,
+    "description": "Tempo hypotheses array",
+    "lineNumber": 74,
+    "type": {
+      "nullable": null,
+      "types": [
+        "Array"
+      ],
+      "spread": false,
+      "description": null
+    }
+  },
+  {
+    "__docId__": 42,
+    "kind": "member",
+    "name": "agents",
+    "memberof": "src/MusicTempo.js~MusicTempo",
+    "static": false,
+    "longname": "src/MusicTempo.js~MusicTempo#agents",
+    "access": null,
+    "description": "Agents array",
+    "lineNumber": 82,
+    "type": {
+      "nullable": null,
+      "types": [
+        "Array"
+      ],
+      "spread": false,
+      "description": null
+    }
+  },
+  {
+    "__docId__": 43,
+    "kind": "member",
+    "name": "tempo",
+    "memberof": "src/MusicTempo.js~MusicTempo",
+    "static": false,
+    "longname": "src/MusicTempo.js~MusicTempo#tempo",
+    "access": null,
+    "description": "The tempo value in beats per minute",
+    "lineNumber": 90,
+    "type": {
+      "nullable": null,
+      "types": [
+        "Number"
+      ],
+      "spread": false,
+      "description": null
+    }
+  },
+  {
+    "__docId__": 44,
+    "kind": "member",
+    "name": "beats",
+    "memberof": "src/MusicTempo.js~MusicTempo",
+    "static": false,
+    "longname": "src/MusicTempo.js~MusicTempo#beats",
+    "access": null,
+    "description": "Beat times array",
+    "lineNumber": 95,
+    "type": {
+      "nullable": null,
+      "types": [
+        "Array"
+      ],
+      "spread": false,
+      "description": null
+    }
+  },
+  {
+    "__docId__": 45,
+    "kind": "member",
+    "name": "beatInterval",
+    "memberof": "src/MusicTempo.js~MusicTempo",
+    "static": false,
+    "longname": "src/MusicTempo.js~MusicTempo#beatInterval",
+    "access": null,
+    "description": "Inter-beat interval",
+    "lineNumber": 100,
+    "type": {
+      "nullable": null,
+      "types": [
+        "Number"
+      ],
+      "spread": false,
+      "description": null
+    }
+  },
+  {
+    "__docId__": 46,
+    "kind": "member",
+    "name": "bestAgent",
+    "memberof": "src/MusicTempo.js~MusicTempo",
+    "static": false,
+    "longname": "src/MusicTempo.js~MusicTempo#bestAgent",
+    "access": null,
+    "description": "The agent with the highest score",
+    "lineNumber": 113,
+    "type": {
+      "nullable": null,
+      "types": [
+        "Agent"
+      ],
+      "spread": false,
+      "description": null
+    }
+  },
+  {
+    "__docId__": 47,
+    "kind": "member",
+    "name": "tempo",
+    "memberof": "src/MusicTempo.js~MusicTempo",
+    "static": false,
+    "longname": "src/MusicTempo.js~MusicTempo#tempo",
+    "access": null,
+    "description": null,
+    "lineNumber": 115,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 48,
+    "kind": "member",
+    "name": "beatInterval",
+    "memberof": "src/MusicTempo.js~MusicTempo",
+    "static": false,
+    "longname": "src/MusicTempo.js~MusicTempo#beatInterval",
+    "access": null,
+    "description": null,
+    "lineNumber": 116,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 49,
+    "kind": "member",
+    "name": "beats",
+    "memberof": "src/MusicTempo.js~MusicTempo",
+    "static": false,
+    "longname": "src/MusicTempo.js~MusicTempo#beats",
+    "access": null,
+    "description": null,
+    "lineNumber": 117,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 50,
+    "kind": "file",
+    "name": "src/OnsetDetection.js",
+    "content": "/** \r\n * Spectral flux calculating and peaks finding\r\n * @class\r\n */\r\nexport default class OnsetDetection {\r\n    /**\r\n     * Get spectral flux\r\n     * @param {Float32Array} audioData - non-interleaved IEEE 32-bit linear PCM with a nominal range of -1 -> +1 (Web Audio API - Audio Buffer)\r\n     * @param {Object} fft - object with methods for performing FFT\r\n     * @param {Object} [params={}] - parameters\r\n     * @param {Number} [params.bufferSize=2048] - FFT windows size\r\n     * @param {Number} [params.hopSize=441] - spacing of audio frames in samples\r\n     * @return {Array} spectralFlux - the array of spectral flux values\r\n     */      \r\n    static calculateSF(audioData, fft, params = {}) {\r\n        if (typeof fft == \"undefined\") {\r\n            throw new ReferenceError(\"fft is undefined\");\r\n        } \r\n        if (typeof fft.getHammingWindow !== \"function\" || typeof fft.getSpectrum !== \"function\") {\r\n            throw new ReferenceError(\"fft doesn't contain getHammingWindow or getSpectrum methods\");\r\n        }\r\n        // Array.fill polyfill\r\n        if (!Array.prototype.fill) {\r\n          Array.prototype.fill = function(value) {\r\n            if (this == null) {\r\n              throw new TypeError('this is null or not defined');\r\n            }\r\n            var O = Object(this);\r\n            var len = O.length >>> 0;\r\n            var start = arguments[1];\r\n            var relativeStart = start >> 0;\r\n             var k = relativeStart < 0 ?\r\n              Math.max(len + relativeStart, 0) :\r\n              Math.min(relativeStart, len);\r\n            var end = arguments[2];\r\n            var relativeEnd = end === undefined ?\r\n              len : end >> 0;\r\n            var final = relativeEnd < 0 ?\r\n              Math.max(len + relativeEnd, 0) :\r\n              Math.min(relativeEnd, len);\r\n            while (k < final) {\r\n              O[k] = value;\r\n              k++;\r\n            }\r\n            return O;\r\n          };\r\n        }        \r\n        params.bufferSize = params.bufferSize || 2048;\r\n        //params.samplingRate = params.samplingRate || 44100;\r\n        params.hopSize = params.hopSize || 441;\r\n\r\n        const {bufferSize, hopSize} = params;        \r\n\r\n        let k = Math.floor(Math.log(bufferSize) / Math.LN2);\r\n        if (Math.pow(2, k) !== bufferSize) { \r\n            throw \"Invalid buffer size (\" + bufferSize + \"), must be power of 2\"; \r\n        }\r\n\r\n        const hammWindow = fft.getHammingWindow(bufferSize);\r\n        let spectralFlux = [];\r\n        let spectrumLength = bufferSize / 2 + 1;\r\n        let previousSpectrum = new Array(spectrumLength);\r\n        previousSpectrum.fill(0);\r\n        let im = new Array(bufferSize);\r\n\r\n        let length = audioData.length;\r\n        let zerosStart = new Array(bufferSize - hopSize);\r\n        zerosStart.fill(0);\r\n        audioData = zerosStart.concat(audioData);        \r\n\r\n        let zerosEnd = new Array(bufferSize - (audioData.length % hopSize));\r\n        zerosEnd.fill(0);\r\n        audioData = audioData.concat(zerosEnd);\r\n        \r\n        for (let wndStart = 0; wndStart < length; wndStart += hopSize) {   \r\n            let wndEnd = wndStart + bufferSize;\r\n\r\n            let re = [];\r\n            let k = 0;\r\n            for (let i = wndStart; i < wndEnd; i++) {\r\n                re[k] = hammWindow[k] * audioData[i];\r\n                k++;\r\n            }\r\n            im.fill(0);\r\n\r\n            fft.getSpectrum(re, im);\r\n\r\n            let flux = 0;\r\n            for(let j = 0; j < spectrumLength; j++) {\r\n                let value = re[j] - previousSpectrum[j];\r\n                flux += value < 0 ? 0 : value;\r\n            }\r\n            spectralFlux.push(flux);\r\n\r\n            previousSpectrum = re;   \r\n        }\r\n\r\n        return spectralFlux;\r\n    }\r\n    /**\r\n     * Normalize data to have a mean of 0 and standard deviation of 1\r\n     * @param {Array} data - data array\r\n     */  \r\n    static normalize(data) {\r\n        if (!Array.isArray(data)) {\r\n            throw \"Array expected\";\r\n        }\r\n        if (data.length == 0) {\r\n            throw \"Array is empty\";\r\n        }\r\n        let sum = 0;\r\n        let squareSum = 0;\r\n        for (let i = 0; i < data.length; i++) {\r\n            sum += data[i];\r\n            squareSum += data[i] * data[i];\r\n        }\r\n        let mean = sum / data.length;\r\n        let standardDeviation = Math.sqrt( (squareSum - sum * mean) / data.length );\r\n        if (standardDeviation == 0)\r\n            standardDeviation = 1; \r\n        for (let i = 0; i < data.length; i++) {\r\n            data[i] = (data[i] - mean) / standardDeviation;\r\n        }\r\n    }    \r\n    /**\r\n     * Finding local maxima in an array\r\n     * @param {Array} spectralFlux - input data\r\n     * @param {Object} [params={}] - parametrs\r\n     * @param {Number} [params.decayRate=0.84] - how quickly previous peaks are forgotten\r\n     * @param {Number} [params.peakFindingWindow=6] - minimum distance between peaks\r\n     * @param {Number} [params.meanWndMultiplier=3] - multiplier for peak finding window\r\n     * @param {Number} [params.peakThreshold=0.35] - minimum value of peaks\r\n     * @return {Array} peaks - array of peak indexes\r\n     */  \r\n    static findPeaks(spectralFlux, params = {}) {\r\n        const length = spectralFlux.length;\r\n        const sf = spectralFlux;\r\n        const decayRate = params.decayRate || 0.84;\r\n        const peakFindingWindow = params.peakFindingWindow || 6;\r\n        const meanWndMultiplier = params.meanWndMultiplier || 3;\r\n        const peakThreshold = params.peakThreshold || 0.35;\r\n       \r\n        let max = 0;\r\n        let av = sf[0];\r\n        let peaks = [];\r\n\r\n        for (let i = 0; i < length; i++) {\r\n            av = decayRate * av + (1 - decayRate) * sf[i];\r\n            if (sf[i] < av) continue;\r\n\r\n            let wndStart = i - peakFindingWindow;\r\n            let wndEnd = i + peakFindingWindow + 1;\r\n\r\n            if (wndStart < 0) wndStart = 0;\r\n            if (wndEnd > length) wndEnd = length;\r\n            if (av < sf[i]) av = sf[i];\r\n\r\n            let isMax = true;\r\n            for (let j = wndStart; j < wndEnd; j++) {\r\n                if (sf[j] > sf[i]) isMax = false; \r\n            }\r\n            if (isMax) {\r\n                let meanWndStart = i - peakFindingWindow * meanWndMultiplier;\r\n                let meanWndEnd = i + peakFindingWindow;\r\n                if (meanWndStart < 0) meanWndStart = 0;\r\n                if (meanWndEnd > length) meanWndEnd = length;\r\n                let sum = 0;\r\n                let count = meanWndEnd - meanWndStart;\r\n                for (let j = meanWndStart; j < meanWndEnd; j++) {\r\n                    sum += sf[j];\r\n                }\r\n                if (sf[i] > sum / count + peakThreshold) {\r\n                    peaks.push(i);\r\n                }\r\n            }\r\n        }\r\n\r\n        if (peaks.length < 2) {\r\n            throw \"Fail to find peaks\";\r\n        }\r\n        return peaks;\r\n    }    \r\n}",
+    "static": true,
+    "longname": "src/OnsetDetection.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1
+  },
+  {
+    "__docId__": 51,
+    "kind": "class",
+    "name": "OnsetDetection",
+    "memberof": "src/OnsetDetection.js",
+    "static": true,
+    "longname": "src/OnsetDetection.js~OnsetDetection",
+    "access": null,
+    "export": true,
+    "importPath": "music-tempo-js/src/OnsetDetection.js",
+    "importStyle": "OnsetDetection",
+    "description": "Spectral flux calculating and peaks finding",
+    "lineNumber": 5,
+    "unknown": [
+      {
+        "tagName": "@class",
+        "tagValue": ""
+      }
+    ],
+    "interface": false
+  },
+  {
+    "__docId__": 52,
+    "kind": "method",
+    "name": "calculateSF",
+    "memberof": "src/OnsetDetection.js~OnsetDetection",
+    "generator": false,
+    "async": false,
+    "static": true,
+    "longname": "src/OnsetDetection.js~OnsetDetection.calculateSF",
+    "access": null,
+    "description": "Get spectral flux",
+    "lineNumber": 15,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "Float32Array"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "audioData",
+        "description": "non-interleaved IEEE 32-bit linear PCM with a nominal range of -1 -> +1 (Web Audio API - Audio Buffer)"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Object"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "fft",
+        "description": "object with methods for performing FFT"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Object"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "{}",
+        "defaultRaw": {},
+        "name": "params",
+        "description": "parameters"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Number"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "2048",
+        "defaultRaw": 2048,
+        "name": "params.bufferSize",
+        "description": "FFT windows size"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Number"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "441",
+        "defaultRaw": 441,
+        "name": "params.hopSize",
+        "description": "spacing of audio frames in samples"
+      }
+    ],
+    "return": {
+      "nullable": null,
+      "types": [
+        "Array"
+      ],
+      "spread": false,
+      "description": "spectralFlux - the array of spectral flux values"
+    }
+  },
+  {
+    "__docId__": 53,
+    "kind": "method",
+    "name": "normalize",
+    "memberof": "src/OnsetDetection.js~OnsetDetection",
+    "generator": false,
+    "async": false,
+    "static": true,
+    "longname": "src/OnsetDetection.js~OnsetDetection.normalize",
+    "access": null,
+    "description": "Normalize data to have a mean of 0 and standard deviation of 1",
+    "lineNumber": 104,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "Array"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "data",
+        "description": "data array"
+      }
+    ]
+  },
+  {
+    "__docId__": 54,
+    "kind": "method",
+    "name": "findPeaks",
+    "memberof": "src/OnsetDetection.js~OnsetDetection",
+    "generator": false,
+    "async": false,
+    "static": true,
+    "longname": "src/OnsetDetection.js~OnsetDetection.findPeaks",
+    "access": null,
+    "description": "Finding local maxima in an array",
+    "lineNumber": 135,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "Array"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "spectralFlux",
+        "description": "input data"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Object"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "{}",
+        "defaultRaw": {},
+        "name": "params",
+        "description": "parametrs"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Number"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "0.84",
+        "defaultRaw": 0.84,
+        "name": "params.decayRate",
+        "description": "how quickly previous peaks are forgotten"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Number"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "6",
+        "defaultRaw": 6,
+        "name": "params.peakFindingWindow",
+        "description": "minimum distance between peaks"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Number"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "3",
+        "defaultRaw": 3,
+        "name": "params.meanWndMultiplier",
+        "description": "multiplier for peak finding window"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Number"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "0.35",
+        "defaultRaw": 0.35,
+        "name": "params.peakThreshold",
+        "description": "minimum value of peaks"
+      }
+    ],
+    "return": {
+      "nullable": null,
+      "types": [
+        "Array"
+      ],
+      "spread": false,
+      "description": "peaks - array of peak indexes"
+    }
+  },
+  {
+    "__docId__": 55,
+    "kind": "file",
+    "name": "src/TempoInduction.js",
+    "content": "/** \r\n * Performs tempo induction by finding clusters of similar inter-onset intervals (IOIs)\r\n * @class\r\n */\r\nexport default class TempoInduction {\r\n    /**\r\n     * Find clusters\r\n     * @param {Array} events - the onsets from which the tempo is induced\r\n     * @param {Object} [params={}] - parameters\r\n     * @param {Number} [params.widthTreshold=0.025] - the maximum difference in IOIs which are in the same cluster\r\n     * @param {Number} [params.maxIOI=2.5] - the maximum IOI for inclusion in a cluster\r\n     * @param {Number} [params.minIOI=0.07] - the minimum IOI for inclusion in a cluster\r\n     * @return {{clIntervals: Array, clSizes: Array}} - object with clusters\r\n     */      \r\n    static processRhythmicEvents(events, params = {}) {\r\n        const widthTreshold = params.widthTreshold || 0.025,\r\n              maxIOI = params.maxIOI || 2.5,\r\n              minIOI = params.minIOI || 0.07,\r\n              length = events.length;\r\n\r\n        let clIntervals = [],\r\n            clSizes = [],\r\n            clCount = 0;\r\n\r\n        for (let i = 0; i < length - 1; i++) {\r\n            for(let j = i + 1; j < length; j++) {\r\n                let ioi = events[j] - events[i];\r\n                if (ioi < minIOI) {\r\n                    continue\r\n                }                \r\n                if (ioi > maxIOI) {\r\n                    break;\r\n                }\r\n                let k = 0;\r\n                for ( ; k < clCount; k++) {\r\n                    if (Math.abs(clIntervals[k] - ioi) < widthTreshold) {\r\n                        if ( Math.abs(clIntervals[k + 1] - ioi) < Math.abs(clIntervals[k] - ioi) \r\n                            && k < clCount - 1 ) {\r\n                            k++;\r\n                        }\r\n                        clIntervals[k] = (clIntervals[k] * clSizes[k] + ioi) / (clSizes[k] + 1);\r\n                        clSizes[k]++;\r\n                        break;\r\n                    }\r\n                }\r\n                if (k != clCount) continue;\r\n                clCount++;\r\n                for ( ; k > 0 && clIntervals[k - 1] > ioi; k--) {\r\n                    clIntervals[k] = clIntervals[k - 1];\r\n                    clSizes[k] = clSizes[k - 1];\r\n                }\r\n                clIntervals[k] = ioi;\r\n                clSizes[k] = 1;\r\n            }\r\n        }\r\n        if (clCount == 0) {\r\n          throw \"Fail to find IOIs\";\r\n        }\r\n        clIntervals.length = clCount;\r\n        clSizes.length = clCount;\r\n        return {clIntervals, clSizes};\r\n    }\r\n    /**\r\n     * Merge similar intervals\r\n     * @param {Object} clusters - object with clusters\r\n     * @param {Array} clusters.clIntervals - clusters IOIs array\r\n     * @param {Array} clusters.clSizes - clusters sizes array\r\n     * @param {Object} [params={}] - parameters\r\n     * @param {Number} [params.widthTreshold=0.025] - the maximum difference in IOIs which are in the same cluster\r\n     * @return {{clIntervals: Array, clSizes: Array}} - object with clusters\r\n     */\r\n    static mergeClusters(clusters, params = {}) {\r\n        const widthTreshold = params.widthTreshold || 0.025;\r\n\r\n        let clIntervals = clusters.clIntervals,\r\n            clSizes = clusters.clSizes;\r\n        let clCount = clIntervals.length;\r\n\r\n        for (let i = 0; i < clCount; i++)\r\n            for (let j = i + 1; j < clCount; j++)\r\n                if (Math.abs(clIntervals[i] - clIntervals[j]) < widthTreshold) {\r\n                    clIntervals[i] = \r\n                        (clIntervals[i] * clSizes[i] + \r\n                        clIntervals[j] * clSizes[j]) / \r\n                        (clSizes[i] + clSizes[j]);\r\n                    clSizes[i] = clSizes[i] + clSizes[j];\r\n                    --clCount;\r\n                    for (let k = j + 1; k <= clCount; k++) {\r\n                        clIntervals[k-1] = clIntervals[k];\r\n                        clSizes[k-1] = clSizes[k];\r\n                    }\r\n                }\r\n        clIntervals.length = clCount;\r\n        clSizes.length = clCount;\r\n        return {clIntervals, clSizes};\r\n    }\r\n    /**\r\n     * Score intervals\r\n     * @param {Object} clusters - object with clusters\r\n     * @param {Array} clusters.clIntervals - clusters IOIs array\r\n     * @param {Array} clusters.clSizes - clusters sizes array\r\n     * @param {Object} [params={}] - parameters\r\n     * @param {Number} [params.widthTreshold=0.025] - the maximum difference in IOIs which are in the same cluster\r\n     * @param {Number} [params.maxTempos=10] - initial amount of tempo hypotheses\r\n     * @return {{clScores: Array, clScoresIdxs: Array}} - object with intervals scores\r\n     */\r\n    static calculateScore(clusters, params = {}) {\r\n        const widthTreshold = params.widthTreshold || 0.025;\r\n        let maxTempos = params.maxTempos || 10;\r\n\r\n        let clIntervals = clusters.clIntervals,\r\n            clSizes = clusters.clSizes,\r\n            clScores = [],\r\n            clScoresIdxs = [];\r\n        let clCount = clIntervals.length;\r\n\r\n        for (let i = 0; i < clCount; i++) {\r\n            clScores[i] = 10 * clSizes[i];\r\n            clScoresIdxs[i] = { score: clScores[i], idx: i};\r\n        }        \r\n\r\n        clScoresIdxs.sort( (a, b) => b.score - a.score );\r\n        if (clScoresIdxs.length > maxTempos) {\r\n          for (let i = maxTempos - 1; i <  clScoresIdxs.length - 1; i++) {\r\n              if (clScoresIdxs[i].score == clScoresIdxs[i + 1].score) {\r\n                  maxTempos++;\r\n              } else {\r\n                  break;\r\n              }\r\n          }\r\n          clScoresIdxs.length = maxTempos;\r\n        }\r\n\r\n        clScoresIdxs = clScoresIdxs.map( a => a.idx );\r\n\r\n        for (let i = 0; i < clCount; i++) {\r\n            for (let j = i + 1; j < clCount; j++) {\r\n                let ratio = clIntervals[i] / clIntervals[j];\r\n                let isFraction = ratio < 1;\r\n                let d, err;\r\n                d = isFraction ? Math.round(1 / ratio) : Math.round(ratio);\r\n                if (d < 2 || d > 8) continue;\r\n\r\n                if (isFraction)\r\n                    err = Math.abs(clIntervals[i] * d - clIntervals[j]);\r\n                else\r\n                    err = Math.abs(clIntervals[i] - clIntervals[j] * d);\r\n                let errTreshold = isFraction ? widthTreshold : widthTreshold * d;\r\n                if (err >= errTreshold) continue;\r\n\r\n                d = d >= 5 ? 1 : 6 - d;\r\n                clScores[i] += d * clSizes[j];\r\n                clScores[j] += d * clSizes[i];\r\n            }\r\n        }\r\n        return {clScores, clScoresIdxs};\r\n    }\r\n    /**\r\n     * Get array of tempo hypotheses\r\n     * @param {Object} clusters - object with clusters\r\n     * @param {Array} clusters.clIntervals - clusters IOIs array\r\n     * @param {Array} clusters.clSizes - clusters sizes array\r\n     * @param {Array} clusters.clScores - clusters scores array\r\n     * @param {Array} clusters.clScoresIdxs - clusters scores indexes array\r\n     * @param {Object} [params={}] - parameters\r\n     * @param {Number} [params.widthTreshold=0.025] - the maximum difference in IOIs which are in the same cluster\r\n     * @param {Number} [params.minBeatInterval=0.3] - the minimum inter-beat interval (IBI) (0.30 seconds == 200 BPM)\r\n     * @param {Number} [params.maxBeatInterval=1] - the maximum inter-beat interval (IBI) (1.00 seconds ==  60 BPM)\r\n     * @return {Array} tempoList - tempo hypotheses array\r\n     */\r\n    static createTempoList(clusters, params = {}) {\r\n        const widthTreshold = params.widthTreshold || 0.025,\r\n            minBeatInterval = params.minBeatInterval || 0.3,\r\n            maxBeatInterval = params.maxBeatInterval || 1;\r\n        let clIntervals = clusters.clIntervals,\r\n            clSizes = clusters.clSizes,\r\n            clScores = clusters.clScores,\r\n            clScoresIdxs = clusters.clScoresIdxs,\r\n            tempoList = [];\r\n        let clCount = clIntervals.length;\r\n\r\n        for (let i = 0; i < clScoresIdxs.length; i++) {\r\n            let idx = clScoresIdxs[i];            \r\n            let newSum = clIntervals[idx] * clScores[idx];\r\n            let newWeight = clScores[idx];\r\n            let err, errTreshold;\r\n            for (let j = 0; j < clCount; j++) {\r\n                if (j == idx) continue;\r\n                let ratio = clIntervals[idx] / clIntervals[j];\r\n                let isFraction = ratio < 1;\r\n                let sumInc = 0;\r\n                let d = isFraction ? Math.round(1 / ratio) : Math.round(ratio);\r\n                if (d < 2 || d > 8) continue;\r\n\r\n                if (isFraction) {\r\n                    err = Math.abs(clIntervals[idx] * d - clIntervals[j]);\r\n                    errTreshold = widthTreshold;\r\n                } else {\r\n                    err = Math.abs(clIntervals[idx] - d * clIntervals[j]);\r\n                    errTreshold = widthTreshold * d;\r\n                }\r\n                if (err >= errTreshold) continue;\r\n\r\n                if (isFraction) {\r\n                    newSum += clIntervals[j] / d * clScores[j];\r\n                } else {\r\n                    newSum += clIntervals[j] * d * clScores[j];\r\n                }\r\n                newWeight += clScores[j];\r\n            }\r\n            let beat = newSum / newWeight;\r\n            \r\n            while (beat < minBeatInterval) beat *= 2;\r\n            while (beat > maxBeatInterval) beat /= 2;\r\n\r\n            tempoList.push(beat);\r\n        }\r\n        return tempoList;\r\n    }    \r\n}",
+    "static": true,
+    "longname": "src/TempoInduction.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1
+  },
+  {
+    "__docId__": 56,
+    "kind": "class",
+    "name": "TempoInduction",
+    "memberof": "src/TempoInduction.js",
+    "static": true,
+    "longname": "src/TempoInduction.js~TempoInduction",
+    "access": null,
+    "export": true,
+    "importPath": "music-tempo-js/src/TempoInduction.js",
+    "importStyle": "TempoInduction",
+    "description": "Performs tempo induction by finding clusters of similar inter-onset intervals (IOIs)",
+    "lineNumber": 5,
+    "unknown": [
+      {
+        "tagName": "@class",
+        "tagValue": ""
+      }
+    ],
+    "interface": false
+  },
+  {
+    "__docId__": 57,
+    "kind": "method",
+    "name": "processRhythmicEvents",
+    "memberof": "src/TempoInduction.js~TempoInduction",
+    "generator": false,
+    "async": false,
+    "static": true,
+    "longname": "src/TempoInduction.js~TempoInduction.processRhythmicEvents",
+    "access": null,
+    "description": "Find clusters",
+    "lineNumber": 15,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "Array"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "events",
+        "description": "the onsets from which the tempo is induced"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Object"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "{}",
+        "defaultRaw": {},
+        "name": "params",
+        "description": "parameters"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Number"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "0.025",
+        "defaultRaw": 0.025,
+        "name": "params.widthTreshold",
+        "description": "the maximum difference in IOIs which are in the same cluster"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Number"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "2.5",
+        "defaultRaw": 2.5,
+        "name": "params.maxIOI",
+        "description": "the maximum IOI for inclusion in a cluster"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Number"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "0.07",
+        "defaultRaw": 0.07,
+        "name": "params.minIOI",
+        "description": "the minimum IOI for inclusion in a cluster"
+      }
+    ],
+    "return": {
+      "nullable": null,
+      "types": [
+        "{clIntervals: Array, clSizes: Array}"
+      ],
+      "spread": false,
+      "description": "object with clusters"
+    }
+  },
+  {
+    "__docId__": 58,
+    "kind": "method",
+    "name": "mergeClusters",
+    "memberof": "src/TempoInduction.js~TempoInduction",
+    "generator": false,
+    "async": false,
+    "static": true,
+    "longname": "src/TempoInduction.js~TempoInduction.mergeClusters",
+    "access": null,
+    "description": "Merge similar intervals",
+    "lineNumber": 72,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "Object"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "clusters",
+        "description": "object with clusters"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Array"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "clusters.clIntervals",
+        "description": "clusters IOIs array"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Array"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "clusters.clSizes",
+        "description": "clusters sizes array"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Object"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "{}",
+        "defaultRaw": {},
+        "name": "params",
+        "description": "parameters"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Number"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "0.025",
+        "defaultRaw": 0.025,
+        "name": "params.widthTreshold",
+        "description": "the maximum difference in IOIs which are in the same cluster"
+      }
+    ],
+    "return": {
+      "nullable": null,
+      "types": [
+        "{clIntervals: Array, clSizes: Array}"
+      ],
+      "spread": false,
+      "description": "object with clusters"
+    }
+  },
+  {
+    "__docId__": 59,
+    "kind": "method",
+    "name": "calculateScore",
+    "memberof": "src/TempoInduction.js~TempoInduction",
+    "generator": false,
+    "async": false,
+    "static": true,
+    "longname": "src/TempoInduction.js~TempoInduction.calculateScore",
+    "access": null,
+    "description": "Score intervals",
+    "lineNumber": 107,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "Object"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "clusters",
+        "description": "object with clusters"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Array"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "clusters.clIntervals",
+        "description": "clusters IOIs array"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Array"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "clusters.clSizes",
+        "description": "clusters sizes array"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Object"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "{}",
+        "defaultRaw": {},
+        "name": "params",
+        "description": "parameters"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Number"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "0.025",
+        "defaultRaw": 0.025,
+        "name": "params.widthTreshold",
+        "description": "the maximum difference in IOIs which are in the same cluster"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Number"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "10",
+        "defaultRaw": 10,
+        "name": "params.maxTempos",
+        "description": "initial amount of tempo hypotheses"
+      }
+    ],
+    "return": {
+      "nullable": null,
+      "types": [
+        "{clScores: Array, clScoresIdxs: Array}"
+      ],
+      "spread": false,
+      "description": "object with intervals scores"
+    }
+  },
+  {
+    "__docId__": 60,
+    "kind": "method",
+    "name": "createTempoList",
+    "memberof": "src/TempoInduction.js~TempoInduction",
+    "generator": false,
+    "async": false,
+    "static": true,
+    "longname": "src/TempoInduction.js~TempoInduction.createTempoList",
+    "access": null,
+    "description": "Get array of tempo hypotheses",
+    "lineNumber": 171,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "Object"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "clusters",
+        "description": "object with clusters"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Array"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "clusters.clIntervals",
+        "description": "clusters IOIs array"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Array"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "clusters.clSizes",
+        "description": "clusters sizes array"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Array"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "clusters.clScores",
+        "description": "clusters scores array"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Array"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "clusters.clScoresIdxs",
+        "description": "clusters scores indexes array"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Object"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "{}",
+        "defaultRaw": {},
+        "name": "params",
+        "description": "parameters"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Number"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "0.025",
+        "defaultRaw": 0.025,
+        "name": "params.widthTreshold",
+        "description": "the maximum difference in IOIs which are in the same cluster"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Number"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "0.3",
+        "defaultRaw": 0.3,
+        "name": "params.minBeatInterval",
+        "description": "the minimum inter-beat interval (IBI) (0.30 seconds == 200 BPM)"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Number"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "1",
+        "defaultRaw": 1,
+        "name": "params.maxBeatInterval",
+        "description": "the maximum inter-beat interval (IBI) (1.00 seconds ==  60 BPM)"
+      }
+    ],
+    "return": {
+      "nullable": null,
+      "types": [
+        "Array"
+      ],
+      "spread": false,
+      "description": "tempoList - tempo hypotheses array"
+    }
+  },
+  {
+    "__docId__": 62,
+    "kind": "external",
+    "name": "Infinity",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Infinity",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Infinity",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 63,
+    "kind": "external",
+    "name": "NaN",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/NaN",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~NaN",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 64,
+    "kind": "external",
+    "name": "undefined",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/undefined",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~undefined",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 65,
+    "kind": "external",
+    "name": "null",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/null",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~null",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 66,
+    "kind": "external",
+    "name": "Object",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Object",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 67,
+    "kind": "external",
+    "name": "object",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~object",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 68,
+    "kind": "external",
+    "name": "Function",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Function",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 69,
+    "kind": "external",
+    "name": "function",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~function",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 70,
+    "kind": "external",
+    "name": "Boolean",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Boolean",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 71,
+    "kind": "external",
+    "name": "boolean",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~boolean",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 72,
+    "kind": "external",
+    "name": "Symbol",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Symbol",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 73,
+    "kind": "external",
+    "name": "Error",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Error",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 74,
+    "kind": "external",
+    "name": "EvalError",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/EvalError",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~EvalError",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 75,
+    "kind": "external",
+    "name": "InternalError",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/InternalError",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~InternalError",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 76,
+    "kind": "external",
+    "name": "RangeError",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RangeError",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~RangeError",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 77,
+    "kind": "external",
+    "name": "ReferenceError",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ReferenceError",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~ReferenceError",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 78,
+    "kind": "external",
+    "name": "SyntaxError",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/SyntaxError",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~SyntaxError",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 79,
+    "kind": "external",
+    "name": "TypeError",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypeError",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~TypeError",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 80,
+    "kind": "external",
+    "name": "URIError",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/URIError",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~URIError",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 81,
+    "kind": "external",
+    "name": "Number",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Number",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 82,
+    "kind": "external",
+    "name": "number",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~number",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 83,
+    "kind": "external",
+    "name": "Date",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Date",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 84,
+    "kind": "external",
+    "name": "String",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~String",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 85,
+    "kind": "external",
+    "name": "string",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~string",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 86,
+    "kind": "external",
+    "name": "RegExp",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~RegExp",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 87,
+    "kind": "external",
+    "name": "Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Array",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 88,
+    "kind": "external",
+    "name": "Int8Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Int8Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Int8Array",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 89,
+    "kind": "external",
+    "name": "Uint8Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Uint8Array",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 90,
+    "kind": "external",
+    "name": "Uint8ClampedArray",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8ClampedArray",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Uint8ClampedArray",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 91,
+    "kind": "external",
+    "name": "Int16Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Int16Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Int16Array",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 92,
+    "kind": "external",
+    "name": "Uint16Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint16Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Uint16Array",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 93,
+    "kind": "external",
+    "name": "Int32Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Int32Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Int32Array",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 94,
+    "kind": "external",
+    "name": "Uint32Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint32Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Uint32Array",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 95,
+    "kind": "external",
+    "name": "Float32Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Float32Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Float32Array",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 96,
+    "kind": "external",
+    "name": "Float64Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Float64Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Float64Array",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 97,
+    "kind": "external",
+    "name": "Map",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Map",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 98,
+    "kind": "external",
+    "name": "Set",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Set",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 99,
+    "kind": "external",
+    "name": "WeakMap",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakMap",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~WeakMap",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 100,
+    "kind": "external",
+    "name": "WeakSet",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakSet",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~WeakSet",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 101,
+    "kind": "external",
+    "name": "ArrayBuffer",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~ArrayBuffer",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 102,
+    "kind": "external",
+    "name": "DataView",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~DataView",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 103,
+    "kind": "external",
+    "name": "JSON",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~JSON",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 104,
+    "kind": "external",
+    "name": "Promise",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Promise",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 105,
+    "kind": "external",
+    "name": "Generator",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Generator",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Generator",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 106,
+    "kind": "external",
+    "name": "GeneratorFunction",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/GeneratorFunction",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~GeneratorFunction",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 107,
+    "kind": "external",
+    "name": "Reflect",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Reflect",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 108,
+    "kind": "external",
+    "name": "Proxy",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Proxy",
+    "access": null,
+    "description": "",
+    "lineNumber": 193,
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 110,
+    "kind": "external",
+    "name": "CanvasRenderingContext2D",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D",
+    "memberof": "BuiltinExternal/WebAPIExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/WebAPIExternal.js~CanvasRenderingContext2D",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 111,
+    "kind": "external",
+    "name": "DocumentFragment",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/DocumentFragment",
+    "memberof": "BuiltinExternal/WebAPIExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/WebAPIExternal.js~DocumentFragment",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 112,
+    "kind": "external",
+    "name": "Element",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/Element",
+    "memberof": "BuiltinExternal/WebAPIExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/WebAPIExternal.js~Element",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 113,
+    "kind": "external",
+    "name": "Event",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/Event",
+    "memberof": "BuiltinExternal/WebAPIExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/WebAPIExternal.js~Event",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 114,
+    "kind": "external",
+    "name": "Node",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/Node",
+    "memberof": "BuiltinExternal/WebAPIExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/WebAPIExternal.js~Node",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 115,
+    "kind": "external",
+    "name": "NodeList",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/NodeList",
+    "memberof": "BuiltinExternal/WebAPIExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/WebAPIExternal.js~NodeList",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 116,
+    "kind": "external",
+    "name": "XMLHttpRequest",
+    "externalLink": "https://developer.mozilla.org/en/docs/Web/API/XMLHttpRequest",
+    "memberof": "BuiltinExternal/WebAPIExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/WebAPIExternal.js~XMLHttpRequest",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 117,
+    "kind": "external",
+    "name": "AudioContext",
+    "externalLink": "https://developer.mozilla.org/en/docs/Web/API/AudioContext",
+    "memberof": "BuiltinExternal/WebAPIExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/WebAPIExternal.js~AudioContext",
+    "access": null,
+    "description": "",
+    "lineNumber": 34,
+    "builtinExternal": true
+  }
+]
