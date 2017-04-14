@@ -1,6 +1,6 @@
 {
   "name": "music-tempo",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Finding out tempo of the music",
   "main": "./dist/node/MusicTempo.js",
   "scripts": {
