@@ -2,9 +2,9 @@
 
 Javascript-library for finding out tempo (BPM) of a song and beat tracking. It uses an algorithm ["Beatroot"](http://www.eecs.qmul.ac.uk/~simond/pub/2001/jnmr.pdf) authored by [Simon Dixon](http://www.eecs.qmul.ac.uk/~simond/)
 
-[**Example App**](example/example-advanced.html)
+**[Example App](https://killercrush.github.io/music-tempo/example/example-advanced.html)**
 
-[**Docs**](docs/index.html)
+**[Docs](https://killercrush.github.io/music-tempo/docs/index.html)**
 
 ## Instalation
 
@@ -122,4 +122,4 @@ $ gulp build
 
 ## License
 
-[MIT License](LICENSE).
+[MIT License](LICENSE)

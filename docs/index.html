@@ -42,9 +42,10 @@
 </div>
 </nav>
 
-<div class="content" data-ice="content"><div data-ice="index" class="github-markdown"><h1 id="music-tempo-v1-0-0">music-tempo v1.0.0</h1>
-<h2 id="description">Description</h2>
+<div class="content" data-ice="content"><div data-ice="index" class="github-markdown"><h2 id="description">Description</h2>
 <p>Javascript-library for finding out tempo (BPM) of a song and beat tracking. It uses an algorithm <a href="http://www.eecs.qmul.ac.uk/~simond/pub/2001/jnmr.pdf">&quot;Beatroot&quot;</a> authored by <a href="http://www.eecs.qmul.ac.uk/~simond/">Simon Dixon</a></p>
+<p><strong><a href="https://killercrush.github.io/music-tempo/example/example-advanced.html">Example App</a></strong></p>
+<p><strong><a href="https://killercrush.github.io/music-tempo/docs/index.html">Docs</a></strong></p>
 <h2 id="instalation">Instalation</h2>
 <p>In a browser</p>
 <pre><code class="lang-html"><code class="source-code prettyprint">&lt;script src=&quot;music-tempo.min.js&quot;&gt;&lt;/script&gt;</code>
@@ -126,8 +127,14 @@ context.decodeAudioData(data, calcTempo);</code>
 </code></pre>
 <h3 id="documentation">Documentation</h3>
 <p>Requires <a href="https://www.npmjs.com/package/esdoc">esdoc</a></p>
-<pre><code class="lang-shell"><code class="source-code prettyprint">$ npm test</code>
+<pre><code class="lang-shell"><code class="source-code prettyprint">$ esdoc</code>
 </code></pre>
+<h3 id="build">Build</h3>
+<p>Requires <a href="https://www.npmjs.com/package/gulp">gulp</a> and <a href="https://www.npmjs.com/package/gulp-babel">babel</a>. Other dependencies can be found in <code>package.json</code></p>
+<pre><code class="lang-shell"><code class="source-code prettyprint">$ gulp build</code>
+</code></pre>
+<h2 id="license">License</h2>
+<p><a href="LICENSE">MIT License</a></p>
 </div>
 </div>
 
