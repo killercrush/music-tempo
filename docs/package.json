@@ -1,13 +1,13 @@
 {
-  "name": "music-tempo-js",
-  "version": "0.0.1",
-  "description": "calculate music tempo",
-  "main": "index.js",
+  "name": "music-tempo",
+  "version": "1.0.1",
+  "description": "Finding out tempo of the music",
+  "main": "./dist/node/MusicTempo.js",
   "scripts": {
     "test": "mocha"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "killercrush",
+  "license": "MIT",
   "devDependencies": {
     "babel-plugin-add-module-exports": "^0.2.1",
     "babel-plugin-transform-es2015-modules-umd": "^6.18.0",
@@ -17,13 +17,30 @@
     "gulp": "^3.9.1",
     "gulp-babel": "^6.1.2",
     "gulp-concat": "^2.6.1",
-    "gulp-order": "^1.1.1",
     "gulp-rename": "^1.2.2",
     "gulp-uglify": "^2.0.1",
-    "jsdoc": "^3.4.3",
     "mocha": "^3.2.0"
   },
-  "dependencies": {
-    "chart.js": "^2.4.0"
-  }
+  "dependencies": {},
+  "directories": {
+    "doc": "docs",
+    "example": "example",
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/killercrush/music-tempo.git"
+  },
+  "keywords": [
+    "music",
+    "tempo",
+    "bpm",
+    "rhythm",
+    "beat",
+    "beatroot"
+  ],
+  "bugs": {
+    "url": "https://github.com/killercrush/music-tempo/issues"
+  },
+  "homepage": "https://github.com/killercrush/music-tempo#readme"
 }

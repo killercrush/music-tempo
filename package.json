@@ -1,6 +1,6 @@
 {
   "name": "music-tempo",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Finding out tempo of the music",
   "main": "./dist/node/MusicTempo.js",
   "scripts": {
@@ -29,18 +29,18 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/killecrush/music-tempo.git"
+    "url": "git+https://github.com/killercrush/music-tempo.git"
   },
   "keywords": [
     "music",
     "tempo",
     "bpm",
-    "rythm",
+    "rhythm",
     "beat",
     "beatroot"
   ],
   "bugs": {
-    "url": "https://github.com/killecrush/music-tempo/issues"
+    "url": "https://github.com/killercrush/music-tempo/issues"
   },
-  "homepage": "https://github.com/killecrush/music-tempo#readme"
+  "homepage": "https://github.com/killercrush/music-tempo#readme"
 }

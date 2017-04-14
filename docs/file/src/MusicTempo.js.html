@@ -19,7 +19,7 @@
   <a href="identifiers.html">Reference</a>
   <a href="source.html">Source</a>
   
-  
+  <a data-ice="repoURL" href="https://github.com/killercrush/music-tempo" class="repo-url-github">Repository</a>
   <div class="search-box">
   <span>
     <img src="./image/search.png">
@@ -82,7 +82,7 @@ export default class MusicTempo {
      */    
     constructor(audioData, params = {}) {
         if ( !(audioData instanceof Float32Array) &amp;&amp; !Array.isArray(audioData)) {
-            throw &quot;&#x41F;&#x430;&#x440;&#x430;&#x43C;&#x435;&#x442;&#x440; audioData &#x43D;&#x435; &#x44F;&#x432;&#x43B;&#x44F;&#x435;&#x442;&#x441;&#x44F; &#x43C;&#x430;&#x441;&#x441;&#x438;&#x432;&#x43E;&#x43C;&quot;;
+            throw &quot;audioData is not an array&quot;;
         }
         const timeStep = params.timeStep || 0.01;
         let res = OnsetDetection.calculateSF(audioData, FFT, params);

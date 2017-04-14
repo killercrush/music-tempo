@@ -1,8 +1,10 @@
-# music-tempo v1.0.0
-
 ## Description
 
 Javascript-library for finding out tempo (BPM) of a song and beat tracking. It uses an algorithm ["Beatroot"](http://www.eecs.qmul.ac.uk/~simond/pub/2001/jnmr.pdf) authored by [Simon Dixon](http://www.eecs.qmul.ac.uk/~simond/)
+
+[**Example App**](example/example-advanced.html)
+
+[**Docs**](docs/index.html)
 
 ## Instalation
 
@@ -18,9 +20,9 @@ $ npm i --save music-tempo
 
 ## Usage
 
-### Browser
-
 Pass to the constructor MusicTempo the buffer that contains data in the following format: non-interleaved IEEE754 32-bit linear PCM with a nominal range between -1 and +1, that is, 32bits floating point buffer, with each samples between -1.0 and 1.0. This format is used in the [AudioBuffer](https://developer.mozilla.org/en/docs/Web/API/AudioBuffer) interface of [Web Audio API](https://developer.mozilla.org/en/docs/Web/API/Web_Audio_API). The object returned by the constructor contain properties `tempo` - tempo value in beats per minute and `beats` - array with beat times in seconds.
+
+### Browser
 
 ```javascript
 var context = new AudioContext();
@@ -87,5 +89,37 @@ var calcTempo = function (buffer) {
 }
 
 var data = fs.readFileSync("songname.mp3");
+
+var context = new AudioContext();
 context.decodeAudioData(data, calcTempo);
 ```
+
+## Other
+
+### Tests
+
+Requires [mocha](https://www.npmjs.com/package/mocha) and [chai](https://www.npmjs.com/package/chai)
+
+```shell
+$ npm test
+```
+
+### Documentation
+
+Requires [esdoc](https://www.npmjs.com/package/esdoc)
+
+```shell
+$ esdoc
+```
+
+### Build
+
+Requires [gulp](https://www.npmjs.com/package/gulp) and [babel](https://www.npmjs.com/package/gulp-babel). Other dependencies can be found in `package.json`
+
+```shell
+$ gulp build
+```
+
+## License
+
+[MIT License](LICENSE).

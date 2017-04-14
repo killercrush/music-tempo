@@ -1,38 +1,38 @@
 window.esdocSearchIndex = [
   [
-    "music-tempo-js/src/agent.js~agent",
+    "music-tempo/src/agent.js~agent",
     "class/src/Agent.js~Agent.html",
-    "<span>Agent</span> <span class=\"search-result-import-path\">music-tempo-js/src/Agent.js</span>",
+    "<span>Agent</span> <span class=\"search-result-import-path\">music-tempo/src/Agent.js</span>",
     "class"
   ],
   [
-    "music-tempo-js/src/beattracking.js~beattracking",
+    "music-tempo/src/beattracking.js~beattracking",
     "class/src/BeatTracking.js~BeatTracking.html",
-    "<span>BeatTracking</span> <span class=\"search-result-import-path\">music-tempo-js/src/BeatTracking.js</span>",
+    "<span>BeatTracking</span> <span class=\"search-result-import-path\">music-tempo/src/BeatTracking.js</span>",
     "class"
   ],
   [
-    "music-tempo-js/src/fft.js~fft",
+    "music-tempo/src/fft.js~fft",
     "class/src/FFT.js~FFT.html",
-    "<span>FFT</span> <span class=\"search-result-import-path\">music-tempo-js/src/FFT.js</span>",
+    "<span>FFT</span> <span class=\"search-result-import-path\">music-tempo/src/FFT.js</span>",
     "class"
   ],
   [
-    "music-tempo-js/src/musictempo.js~musictempo",
+    "music-tempo/src/musictempo.js~musictempo",
     "class/src/MusicTempo.js~MusicTempo.html",
-    "<span>MusicTempo</span> <span class=\"search-result-import-path\">music-tempo-js/src/MusicTempo.js</span>",
+    "<span>MusicTempo</span> <span class=\"search-result-import-path\">music-tempo/src/MusicTempo.js</span>",
     "class"
   ],
   [
-    "music-tempo-js/src/onsetdetection.js~onsetdetection",
+    "music-tempo/src/onsetdetection.js~onsetdetection",
     "class/src/OnsetDetection.js~OnsetDetection.html",
-    "<span>OnsetDetection</span> <span class=\"search-result-import-path\">music-tempo-js/src/OnsetDetection.js</span>",
+    "<span>OnsetDetection</span> <span class=\"search-result-import-path\">music-tempo/src/OnsetDetection.js</span>",
     "class"
   ],
   [
-    "music-tempo-js/src/tempoinduction.js~tempoinduction",
+    "music-tempo/src/tempoinduction.js~tempoinduction",
     "class/src/TempoInduction.js~TempoInduction.html",
-    "<span>TempoInduction</span> <span class=\"search-result-import-path\">music-tempo-js/src/TempoInduction.js</span>",
+    "<span>TempoInduction</span> <span class=\"search-result-import-path\">music-tempo/src/TempoInduction.js</span>",
     "class"
   ],
   [
