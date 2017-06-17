@@ -94,6 +94,18 @@ var context = new AudioContext();
 context.decodeAudioData(data, calcTempo);
 ```
 
+## Optional parameters
+
+You can pass object with parameters as second argument to the constructor: 
+
+```javascript
+var p = { expiryTime: 30, maxBeatInterval: 1.5 };
+var mt = new MusicTempo(audioData, p);
+```
+Most useful are `maxBeatInterval`/`minBeatInterval` and `expiryTime`. First two used for setting up maximum and minimum BPM. Default value for `maxBeatInterval` is 1 which means that minimum BPM is 60 (60 / 1 = 60). Default value for `minBeatInterval` is 0.3 which means that maximum BPM is 200 (60 / 0.3 = 200). Be careful, the more value of maximum BPM, the more probability of 2x-BPM errors (e.g.  if max BPM = 210 and real tempo of a song 102 BPM, in the end you can get 204 BPM). 
+`expiryTime` can be used if audio file have periods of silence or almost silence and because of that beat tracking is failing. 
+Other parameters are listed in [documentation](https://killercrush.github.io/music-tempo/docs/class/src/MusicTempo.js~MusicTempo.html).
+
 ## Other
 
 ### Tests
