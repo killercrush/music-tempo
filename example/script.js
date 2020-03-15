@@ -1,6 +1,7 @@
 document.addEventListener("DOMContentLoaded", function () {
 "use strict";
-  var context = new AudioContext(),
+  var srVal =  document.getElementById("sampleRateInput").value || 44100;
+  var context = new AudioContext({ sampleRate: srVal }),
       trackGainNode = context.createGain();
   trackGainNode.gain.value = 0.01;
   //beats

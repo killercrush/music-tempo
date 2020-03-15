@@ -22,10 +22,11 @@ $ npm i --save music-tempo
 
 Pass to the constructor MusicTempo the buffer that contains data in the following format: non-interleaved IEEE754 32-bit linear PCM with a nominal range between -1 and +1, that is, 32bits floating point buffer, with each samples between -1.0 and 1.0. This format is used in the [AudioBuffer](https://developer.mozilla.org/en/docs/Web/API/AudioBuffer) interface of [Web Audio API](https://developer.mozilla.org/en/docs/Web/API/Web_Audio_API). The object returned by the constructor contain properties `tempo` - tempo value in beats per minute and `beats` - array with beat times in seconds.
 
+
 ### Browser
 
 ```javascript
-var context = new AudioContext();
+var context = new AudioContext({ sampleRate: 44100 });
 var fileInput = document.getElementById("fileInput");
 
 fileInput.onchange = function () {
