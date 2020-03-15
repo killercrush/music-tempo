@@ -5,8 +5,11 @@
   </head>
   <body>
     <input type="file" name="" id="fileInput">
+    <p>Sample rate <input type="number" name="" id="sampleRateInput" value="44100" /></p>
     <script>
-      var context = new AudioContext();
+      var context = new AudioContext({
+        sampleRate: document.getElementById("sampleRateInput").value,
+      });
       var fileInput = document.getElementById("fileInput");
 
       fileInput.onchange = function () {
