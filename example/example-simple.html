@@ -6,7 +6,9 @@
   <body>
     <input type="file" name="" id="fileInput">
     <script>
-      var context = new AudioContext();
+      var context = new AudioContext({
+        sampleRate: 44100,
+      });
       var fileInput = document.getElementById("fileInput");
 
       fileInput.onchange = function () {
